@@ -572,3 +572,9 @@ dotnet_diagnostic.S6605.severity = none             # Collection-specific "Exist
 # Custom - Code Analyzers Rules
 ##########################################
 [*.{cs,csx,cake}]
+
+dotnet_diagnostic.S3236.severity = none              # Remove this argument from the method call; it hides the caller information
+
+dotnet_diagnostic.CA1031.severity = none             # Catch a more specific exception type, or rethro the exception
+
+dotnet_diagnostic.SA1010.severity = none             # Opening square brackets should not be preceded by a space

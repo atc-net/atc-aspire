@@ -54,3 +54,29 @@ dotnet_diagnostic.SA1133.severity = none            # https://github.com/atc-net
 ##########################################
 # Custom - Code Analyzers Rules
 ##########################################
+
+dotnet_diagnostic.CA1019.severity = none             # Define accessors for attribute arguments
+dotnet_diagnostic.CA1062.severity = none             # Validate arguments
+dotnet_diagnostic.CA1307.severity = none             # 'string.Contains(string)' has a method overload that takes a 'StringComparison' parameter
+dotnet_diagnostic.CA1848.severity = none             # For improved performance, use the LoggerMessage delegates
+dotnet_diagnostic.CA1859.severity = none             # Change type of variable
+dotnet_diagnostic.CA2000.severity = none             # Call System.IDisposable.Dispose on object
+dotnet_diagnostic.CA2234.severity = none             # Call 'HttpClient.GetAsync(Uri)' instead of 'HttpClient.GetAsync(string)'
+dotnet_diagnostic.CA5394.severity = none             # Random is an insecure random number generator
+
+dotnet_diagnostic.MA0002.severity = none             # Use an overload that has a IEqualityComparer<string> or IComparer<string> parameter
+dotnet_diagnostic.MA0048.severity = none             # File name must match
+
+dotnet_diagnostic.SA1116.severity = none             #The parameters should begin on the line after the declaration, whenever the parameter span across multiple lines
+dotnet_diagnostic.SA1117.severity = none             # The parameters should all be placed on the same line or each parameter should be placed on its own line
+dotnet_diagnostic.SA1127.severity = none             # Generic type constraints should be on their own line
+dotnet_diagnostic.SA1308.severity = none             # Field should not begin with the prefix
+dotnet_diagnostic.SA1309.severity = none             # Field should not begin with an underscore
+dotnet_diagnostic.SA1311.severity = none             # Static readonly fields should begin with upper-case letter
+dotnet_diagnostic.SA1615.severity = none             # Element return value should be documented
+
+dotnet_diagnostic.IDE1006.severity = none            # Naming rule violation: Prefix '_' is not expected
+
+dotnet_diagnostic.S108.severity = none               # Either remove or fill this block of code.
+
+dotnet_diagnostic.SCS0005.severity = none            # Weak random number generator

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Queries\TodoQuery.kusto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Atc.Aspire.Azure.Kusto\Atc.Aspire.Azure.Kusto.csproj" />
+    <ProjectReference Include="..\..\src\Atc.Aspire.Hosting.Azure.Kusto\Atc.Aspire.Hosting.Azure.Kusto.csproj" />
+    <ProjectReference Include="..\Atc.Aspire.Hosting.Azure.Kusto.ServiceDefaults\Atc.Aspire.Hosting.Azure.Kusto.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+</Project>

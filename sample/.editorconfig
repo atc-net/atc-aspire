@@ -49,3 +49,11 @@ dotnet_diagnostic.S1075.severity = none             # Refactor your code not to 
 ##########################################
 # Custom - Code Analyzers Rules
 ##########################################
+
+dotnet_diagnostic.MA0048.severity = none             # File name must match type name - https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0048.md
+
+dotnet_diagnostic.CA1062.severity = none             # Validate arguments of public methods - https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1062
+dotnet_diagnostic.CA1724.severity = none             # Type names should not match namespaces - https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/CA1724
+
+dotnet_diagnostic.SA1010.severity = none             # Opening square brackets should not be preceded by a space
+dotnet_diagnostic.SA1649.severity = none             # File name must match type name

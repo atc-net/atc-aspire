@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Atc.Aspire.Azure.Kusto\Atc.Aspire.Azure.Kusto.csproj" />
+    <ProjectReference Include="..\Atc.Aspire.Testing\Atc.Aspire.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

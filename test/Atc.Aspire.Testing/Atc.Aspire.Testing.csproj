@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>false</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <IsAspireHost>true</IsAspireHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" IsAspireProjectResource="false" />
+    <PackageReference Include="Aspire.Hosting.Testing" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      This intentionally does not reference 'xunit', 'xunit.core', or any runner packages.
+      XUnit recommends only using xunit.extensibility.*, xunit.assert, and xunit.abstractions for packages which "extend" xunit.
+      This allows consumers to decide which type of xunit runner they want to use to run these tests,
+      and avoids problems with `dotnet pack`.
+      See https://xunit.github.io/docs/nuget-packages and the special note in https://xunit.github.io/releases/2.3.
+    -->
+    <PackageReference Include="JsonSchema.Net" Version="7.3.1" />
+    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.9.3" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.4.0" />
+    <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version=" 9.0.0-beta.24568.1" />
+  </ItemGroup>
+
+</Project>
