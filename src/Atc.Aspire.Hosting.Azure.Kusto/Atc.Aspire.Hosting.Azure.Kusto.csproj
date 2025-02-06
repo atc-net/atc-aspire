@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Atc.Aspire.Hosting.Azure.Kusto.Tests"></InternalsVisibleTo>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspire.Hosting" Version="9.0.0" />
     <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="13.0.0" />
   </ItemGroup>
