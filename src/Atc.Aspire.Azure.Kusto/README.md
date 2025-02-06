@@ -84,7 +84,7 @@ Alternatively, configure settings under the Aspire:Kusto:Client section:
         "HostAddress": "https://your-cluster.kusto.windows.net",
         "DatabaseName": "MyDatabase",
         "DisableHealthChecks": false,
-        "HealthCheckTimeout": 5000
+        "HealthCheckTimeout": 4000
       }
     }
   }

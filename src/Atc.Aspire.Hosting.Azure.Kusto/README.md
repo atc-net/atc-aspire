@@ -45,8 +45,7 @@ This will configure the emulator with a default HTTP port and include it in your
 If your service needs access to the emulator, reference it in your project:
 
 ```csharp
-var myService = builder.AddProject<Projects.MyService>()
-.WithReference(kusto);
+var myService = builder.AddProject<Projects.MyService>().WithReference(kusto);
 ```
 
 Your MyService project can now resolve the Kusto connection string automatically.
