@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>45ef4fd3-c046-43eb-8a4e-3bd6c5bed445</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Atc.Aspire.Hosting.Azure.Kusto\Atc.Aspire.Hosting.Azure.Kusto.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\Atc.Aspire.Hosting.Azure.Kusto.ApiService\Atc.Aspire.Hosting.Azure.Kusto.ApiService.csproj" />
+  </ItemGroup>
+
+</Project>

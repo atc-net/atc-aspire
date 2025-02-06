@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Atc.XUnit" Version="2.0.548" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sample\Atc.Aspire.Hosting.Azure.Kusto.AppHost\Atc.Aspire.Hosting.Azure.Kusto.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Atc.Aspire.Hosting.Azure.Kusto\Atc.Aspire.Hosting.Azure.Kusto.csproj" />
+    <ProjectReference Include="..\Atc.Aspire.Testing\Atc.Aspire.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

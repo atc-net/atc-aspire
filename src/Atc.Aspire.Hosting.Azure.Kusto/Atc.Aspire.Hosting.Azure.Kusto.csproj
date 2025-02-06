@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Atc.Aspire.Hosting.Azure.Kusto</PackageId>
+    <PackageTags>aspire;kusto;adx;azure-data-explorer;hosting</PackageTags>
+    <Description>An Aspire hosting component leveraging the Kustainer container.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Link="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Atc.Aspire.Azure.Kusto\KustoHealthCheck.cs" Link="KustoHealthCheck.cs" />
+    <Compile Include="..\shared\VolumeNameGenerator.cs" Link="VolumeNameGenerator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Atc.Aspire.Hosting.Azure.Kusto.Tests"></InternalsVisibleTo>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="13.0.0" />
+  </ItemGroup>
+
+</Project>

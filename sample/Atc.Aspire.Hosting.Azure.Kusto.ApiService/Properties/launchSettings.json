@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Atc.Aspire.Hosting.Azure.Kusto.ApiService": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:47612;http://localhost:47611"
+    }
+  }
+}

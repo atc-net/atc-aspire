@@ -1,0 +1,3 @@
+Todo
+| take 10
+| project Id, Title, Description, Status, Priority, Created, Closed

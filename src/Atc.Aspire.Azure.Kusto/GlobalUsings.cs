@@ -1,0 +1,9 @@
+global using Aspire;
+global using Atc.Aspire.Azure.Kusto;
+global using Atc.Kusto;
+global using Azure.Core;
+global using Kusto.Data.Common;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Hosting;

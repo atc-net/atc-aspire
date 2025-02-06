@@ -1,0 +1,9 @@
+global using System.Net;
+global using System.Net.Http.Json;
+global using Aspire.Hosting;
+global using Aspire.Hosting.ApplicationModel;
+global using Aspire.Hosting.Utils;
+global using Atc.Aspire.Testing;
+global using Atc.XUnit;
+global using Microsoft.Extensions.DependencyInjection;
+global using Xunit.Abstractions;
