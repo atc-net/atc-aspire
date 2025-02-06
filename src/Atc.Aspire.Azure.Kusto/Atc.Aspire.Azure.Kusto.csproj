@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Atc.Aspire.Azure.Kusto.Tests"></InternalsVisibleTo>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Atc.Kusto" Version="2.0.1" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="13.0.0" />
