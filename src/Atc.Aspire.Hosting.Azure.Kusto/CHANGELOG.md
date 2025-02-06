@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.1.0...Atc.Aspire.Hosting.Azure.Kusto@v1.2.0) (2025-02-06)
+
+
+### New features
+
+* update documentation for each package ([efb9a70](https://github.com/atc-net/atc-aspire/commit/efb9a7049d5ae27b3331d5ae215811be6f7e9605))
+
 ## [1.1.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto-v1.0.0...Atc.Aspire.Hosting.Azure.Kusto@v1.1.0) (2025-02-06)
 
 
