@@ -2,7 +2,7 @@
   <PropertyGroup>
     <PackageId>Atc.Aspire.Azure.Kusto</PackageId>
     <PackageTags>aspire;kusto;adx;azure-data-explorer;client</PackageTags>
-    <Description>An Aspire client component to execute queries againast a Azure Data Explorer Cluster.</Description>
+    <Description>An Aspire client component to execute queries against a Azure Data Explorer Cluster.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
