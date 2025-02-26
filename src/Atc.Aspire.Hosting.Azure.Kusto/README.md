@@ -1,6 +1,6 @@
 # Introduction
 
-[![NuGet Version](https://img.shields.io/nuget/v/atc.aspire.azure.hosting.kusto.svg?logo=nuget&style=for-the-badge)](https://www.nuget.org/packages/atc.aspire.hosting.azure.kusto)
+[![NuGet Version](https://img.shields.io/nuget/v/atc.aspire.hosting.azure.kusto.svg?logo=nuget&style=for-the-badge)](https://www.nuget.org/packages/atc.aspire.hosting.azure.kusto)
 
 The `Atc.Aspire.Hosting.Azure.Kusto` package provides an Aspire Hosting Integration for running Azure Data Explorer ([Kusto Emulator](https://learn.microsoft.com/en-us/azure/data-explorer/kusto-emulator-overview)) containers within a .NET Aspire distributed application. It enables easy setup of Kusto instances with health checks, connection string handling, and default configurations.
 
