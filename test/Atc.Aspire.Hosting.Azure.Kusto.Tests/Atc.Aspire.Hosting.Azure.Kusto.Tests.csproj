@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Atc.XUnit" Version="2.0.548" />
+    <PackageReference Include="Atc.XUnit" Version="2.0.552" />
   </ItemGroup>
 
 

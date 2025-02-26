@@ -1,5 +1,4 @@
 global using Aspire.Hosting.ApplicationModel;
-global using Aspire.Hosting.Utils;
 global using Atc.Aspire.Azure.Kusto;
 global using Atc.Aspire.Hosting.Azure.Kusto;
 global using Kusto.Data;
