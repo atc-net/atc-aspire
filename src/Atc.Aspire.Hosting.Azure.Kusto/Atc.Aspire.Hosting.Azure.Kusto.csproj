@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Compile Include="..\Atc.Aspire.Azure.Kusto\KustoHealthCheck.cs" Link="KustoHealthCheck.cs" />
-    <Compile Include="..\shared\VolumeNameGenerator.cs" Link="VolumeNameGenerator.cs" />
   </ItemGroup>
 
   <ItemGroup>
