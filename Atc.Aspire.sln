@@ -27,7 +27,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{F9976986-13CB-4AD4-BAF0-3B68638C7B5C}"
 	ProjectSection(SolutionItems) = preProject
 		src\shared\HealthChecksExtensions.cs = src\shared\HealthChecksExtensions.cs
-		src\shared\VolumeNameGenerator.cs = src\shared\VolumeNameGenerator.cs
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atc.Aspire.Azure.Kusto", "src\Atc.Aspire.Azure.Kusto\Atc.Aspire.Azure.Kusto.csproj", "{C2C0FA36-8EDC-4402-A107-ED724D22B063}"

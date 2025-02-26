@@ -92,7 +92,7 @@ public static class KustoHostingExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.WithVolume(name ?? VolumeNameGenerator.CreateVolumeName(builder, "data"), "/kusto/tmp/Kusto.Personal");
+        return builder.WithVolume(name ?? VolumeNameGenerator.Generate(builder, "data"), "/kusto/tmp/Kusto.Personal");
     }
 
     /// <summary>
