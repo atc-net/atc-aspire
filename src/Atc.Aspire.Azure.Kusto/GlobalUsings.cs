@@ -1,6 +1,7 @@
 global using Aspire;
 global using Atc.Aspire.Azure.Kusto;
 global using Atc.Kusto;
+global using Atc.Kusto.Providers.Internal;
 global using Azure.Core;
 global using Kusto.Data.Common;
 global using Microsoft.Extensions.Configuration;
