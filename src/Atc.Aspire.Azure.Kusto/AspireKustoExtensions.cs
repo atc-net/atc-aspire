@@ -68,7 +68,7 @@ public static class AspireKustoExtensions
 
         builder.Services.ConfigureAzureDataExplorer(o =>
         {
-            o.HostAddress = options.HostAddress.AbsoluteUri;
+            o.HostAddress = options.HostAddress;
             o.DatabaseName = options.DatabaseName;
             o.Credential = options.Credential;
         });
