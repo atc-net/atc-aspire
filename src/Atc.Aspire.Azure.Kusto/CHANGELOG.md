@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.3.0...Atc.Aspire.Azure.Kusto@v1.3.1) (2025-03-25)
+
+
+### Bug fixes
+
+* ensure Uri is used in AspireKustoExtensions from options to configure AzureDataExplorer ([debc1c1](https://github.com/atc-net/atc-aspire/commit/debc1c1eda894ecb2568035ef9b4d76cd544f6ef))
+
 ## [1.3.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.2.0...Atc.Aspire.Azure.Kusto@v1.3.0) (2025-02-26)
 
 
