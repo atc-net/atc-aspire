@@ -79,7 +79,12 @@ public static class AspireKustoExtensions
 
             builder.TryAddHealthCheck(new HealthCheckRegistration(
                 healthCheckName,
-                sp => new KustoHealthCheck(sp.GetRequiredService<ICslQueryProvider>(), options.DatabaseName),
+                sp =>
+                {
+                    var kustoClientProvider = sp.GetRequiredService<IKustoClientProvider>();
+
+                    return new KustoHealthCheck(kustoClientProvider.GetQueryClient(), options.DatabaseName);
+                },
                 failureStatus: null,
                 tags: null,
                 timeout: options.HealthCheckTimeout > 0 ? TimeSpan.FromMilliseconds(options.HealthCheckTimeout.Value) : null));
