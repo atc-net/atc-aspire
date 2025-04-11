@@ -1,17 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.1.0" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.0" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsTestProject>false</IsTestProject>
     <IsPackable>false</IsPackable>
-    <IsAspireHost>true</IsAspireHost>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.1.0" IsAspireProjectResource="false" />
-    <PackageReference Include="Aspire.Hosting.Testing" Version="9.1.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.0" IsAspireProjectResource="false" />
+    <PackageReference Include="Aspire.Hosting.Testing" Version="9.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,8 +24,8 @@
     <PackageReference Include="JsonSchema.Net" Version="7.3.4" />
     <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.9.3" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.11.2" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version=" 9.0.0-beta.24568.1" />
