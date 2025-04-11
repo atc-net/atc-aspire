@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.3.1...Atc.Aspire.Azure.Kusto@v1.4.0) (2025-04-11)
+
+
+### New features
+
+* upgrade Atc.Kusto nuget package ([29300ee](https://github.com/atc-net/atc-aspire/commit/29300ee20e9c843ab04ca0b4fe20a957698cfe01))
+
 ## [1.3.1](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.3.0...Atc.Aspire.Azure.Kusto@v1.3.1) (2025-03-25)
 
 
