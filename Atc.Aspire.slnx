@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/sample/">
+    <Project Path="sample/Atc.Aspire.Hosting.Azure.Kusto.ApiService/Atc.Aspire.Hosting.Azure.Kusto.ApiService.csproj" />
+    <Project Path="sample/Atc.Aspire.Hosting.Azure.Kusto.AppHost/Atc.Aspire.Hosting.Azure.Kusto.AppHost.csproj" />
+    <Project Path="sample/Atc.Aspire.Hosting.Azure.Kusto.ServiceDefaults/Atc.Aspire.Hosting.Azure.Kusto.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Atc.Aspire.Azure.Kusto/Atc.Aspire.Azure.Kusto.csproj" />
+    <Project Path="src/Atc.Aspire.Hosting.Azure.Kusto/Atc.Aspire.Hosting.Azure.Kusto.csproj" />
+  </Folder>
+  <Folder Name="/src/shared/">
+    <File Path="src/shared/HealthChecksExtensions.cs" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Atc.Aspire.Azure.Kusto.Tests/Atc.Aspire.Azure.Kusto.Tests.csproj" />
+    <Project Path="test/Atc.Aspire.Hosting.Azure.Kusto.Tests/Atc.Aspire.Hosting.Azure.Kusto.Tests.csproj" />
+    <Project Path="test/Atc.Aspire.Testing/Atc.Aspire.Testing.csproj" />
+  </Folder>
+</Solution>
