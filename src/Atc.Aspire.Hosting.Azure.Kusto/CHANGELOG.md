@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.3.0...Atc.Aspire.Hosting.Azure.Kusto@v1.4.0) (2025-08-13)
+
+
+### New features
+
+* migration from manual eventing to lifecycle event ([906e865](https://github.com/atc-net/atc-aspire/commit/906e86531b982d4e91caa2e0fec0b3b1a1bb1810))
+* update aspire to version 9.4 ([d5989fc](https://github.com/atc-net/atc-aspire/commit/d5989fc8e9ed0ebb47c0409ec96dbfc05bbca1d5))
+
 ## [1.3.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.2.0...Atc.Aspire.Hosting.Azure.Kusto@v1.3.0) (2025-02-26)
 
 
