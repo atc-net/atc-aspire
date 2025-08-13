@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Atc.Aspire.Hosting.Azure.Kusto</PackageId>
     <PackageTags>aspire;kusto;adx;azure-data-explorer;hosting</PackageTags>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting" Version="9.3.2" />
+    <PackageReference Include="Aspire.Hosting" Version="9.4.1" />
     <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="13.0.2" />
   </ItemGroup>
 
