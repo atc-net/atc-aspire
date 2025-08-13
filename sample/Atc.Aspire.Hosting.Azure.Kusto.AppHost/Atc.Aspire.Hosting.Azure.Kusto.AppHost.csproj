@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" Version="9.4.0" />
 
@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Atc.Aspire.Hosting.Azure.Kusto\Atc.Aspire.Hosting.Azure.Kusto.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\Atc.Aspire.Hosting.Azure.Kusto.ApiService\Atc.Aspire.Hosting.Azure.Kusto.ApiService.csproj" />
+    <ProjectReference Include="..\Atc.Aspire.Hosting.Azure.Kusto.ApiService\Atc.Aspire.Hosting.Azure.Kusto.ApiService.csproj"  AspireProjectMetadataTypeName="Api" />
   </ItemGroup>
 
 </Project>
