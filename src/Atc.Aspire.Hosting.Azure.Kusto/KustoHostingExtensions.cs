@@ -69,9 +69,9 @@ public static class KustoHostingExtensions
          .Add(new HealthCheckRegistration(
              healthCheckKey,
              _ => new KustoHealthCheck(queryProvider!, KustoContainerResource.DefaultDbName),
-             failureStatus: default,
-             tags: default,
-             timeout: default));
+             failureStatus: null,
+             tags: null,
+             timeout: null));
 
         return resourceBuilder.WithHealthCheck(healthCheckKey);
     }
