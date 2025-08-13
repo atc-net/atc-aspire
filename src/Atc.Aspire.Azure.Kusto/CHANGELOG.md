@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.6.0...Atc.Aspire.Azure.Kusto@v1.7.0) (2025-08-13)
+
+
+### New features
+
+* update aspire to version 9.4 ([d5989fc](https://github.com/atc-net/atc-aspire/commit/d5989fc8e9ed0ebb47c0409ec96dbfc05bbca1d5))
+
 ## [1.6.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.5.0...Atc.Aspire.Azure.Kusto@v1.6.0) (2025-06-24)
 
 
