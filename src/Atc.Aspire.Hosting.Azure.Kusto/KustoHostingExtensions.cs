@@ -43,6 +43,8 @@ public static class KustoHostingExtensions
 
         var (image, tag) = GetImageAndTag(imageType);
 
+        ICslQueryProvider? queryProvider = null;
+
         var resourceBuilder = builder.AddResource(resource)
             .WithImage(image)
             .WithImageTag(tag)
@@ -54,16 +56,10 @@ public static class KustoHostingExtensions
             .WithEnvironment("ACCEPT_EULA", "Y")
             .WithEnvironment("-m", "4G")
             .ExcludeFromManifest()
-            .WithKustoDefaults();
-
-        ICslQueryProvider? queryProvider = null;
-
-        resourceBuilder.ApplicationBuilder.Eventing.Subscribe<ConnectionStringAvailableEvent>(
-            resource,
-            async (_, ct) =>
+            .WithKustoDefaults()
+            .OnConnectionStringAvailable(async (containerResource, evt, ct) =>
             {
-                var connectionString = await resource.ConnectionStringExpression.GetValueAsync(ct) ??
-                throw new DistributedApplicationException($"ConnectionStringAvailableEvent was published for the '{resource.Name}' resource but the connection string was null.");
+                var connectionString = await containerResource.ConnectionStringExpression.GetValueAsync(ct).ConfigureAwait(false);
 
                 queryProvider = CreateCslQueryProvider(connectionString);
             });
