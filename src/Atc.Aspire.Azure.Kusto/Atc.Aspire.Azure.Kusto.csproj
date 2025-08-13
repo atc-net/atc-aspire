@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Atc.Aspire.Azure.Kusto</PackageId>
     <PackageTags>aspire;kusto;adx;azure-data-explorer;client</PackageTags>
