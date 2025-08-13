@@ -6,7 +6,7 @@ var kusto = builder
     .WithBindMount("./kusto", target: "/kustodata")
     .WithEntrypoint("/kustodata/entrypoint.sh");
 
-builder.AddProject<Atc_Aspire_Hosting_Azure_Kusto_ApiService>("apiservice")
+builder.AddProject<Api>("apiservice")
     .WithReference(kusto)
     .WaitFor(kusto)
     .WithEnvironment("KustoDatabaseName", KustoContainerResource.DefaultDbName)
