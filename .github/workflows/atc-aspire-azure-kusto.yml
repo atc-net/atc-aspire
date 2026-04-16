@@ -13,13 +13,13 @@ jobs:
 
     steps:
       - name: 🛒 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
 
       - name: ⚙️ Setup dotnet 9.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: '9.0.x'
 
@@ -36,5 +36,7 @@ jobs:
         run: dotnet pack src/Atc.Aspire.Azure.Kusto/Atc.Aspire.Azure.Kusto.csproj -c Release --no-restore -o ${GITHUB_WORKSPACE}/packages /p:PublicRelease=true
 
       - name: 📦 Push package to NuGet
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
         run: |
-          dotnet nuget push ${GITHUB_WORKSPACE}/packages/Atc.Aspire.Azure.Kusto*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
+          dotnet nuget push ${GITHUB_WORKSPACE}/packages/Atc.Aspire.Azure.Kusto*.nupkg -k "$NUGET_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
