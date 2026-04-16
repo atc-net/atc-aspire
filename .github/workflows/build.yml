@@ -1,10 +1,16 @@
-name: CI for Atc.Aspire Packages
+name: Build and test
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - 'feature/**'
+      - 'hotfix/**'
+    tags-ignore:
+      - '**'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -14,12 +20,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🛒 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
       - name: ⚙️ Setup dotnet 9.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: '9.0.x'
 
