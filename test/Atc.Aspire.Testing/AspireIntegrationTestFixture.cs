@@ -3,7 +3,8 @@ namespace Atc.Aspire.Testing;
 public sealed class AspireIntegrationTestFixture<TEntryPoint>() : DistributedApplicationFactory(typeof(TEntryPoint), []), IAsyncLifetime
     where TEntryPoint : class
 {
-    public ResourceNotificationService ResourceNotificationService => App.Services.GetRequiredService<ResourceNotificationService>();
+    public ResourceNotificationService ResourceNotificationService
+        => App.Services.GetRequiredService<ResourceNotificationService>();
 
     public DistributedApplication App { get; private set; } = null!;
 
@@ -13,7 +14,8 @@ public sealed class AspireIntegrationTestFixture<TEntryPoint>() : DistributedApp
         base.OnBuilt(application);
     }
 
-    protected override void OnBuilderCreated(DistributedApplicationBuilder applicationBuilder)
+    protected override void OnBuilderCreated(
+        DistributedApplicationBuilder applicationBuilder)
     {
         applicationBuilder.Services.AddLogging(builder =>
             {
@@ -40,9 +42,6 @@ public sealed class AspireIntegrationTestFixture<TEntryPoint>() : DistributedApp
         }
     }
 
-    public Task InitializeAsync()
-        => StartAsync().WaitAsync(TimeSpan.FromMinutes(10));
-
-    async Task IAsyncLifetime.DisposeAsync() =>
-        await DisposeAsync();
+    public async ValueTask InitializeAsync()
+        => await StartAsync().WaitAsync(TimeSpan.FromMinutes(10));
 }
