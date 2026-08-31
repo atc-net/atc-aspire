@@ -5,8 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Queries\TodoQuery.kusto" />
+    <!-- Required for runtime: embeds .kusto files in the assembly -->
+    <EmbeddedResource Include="**/*.kusto" />
+
+    <!-- Required for compile-time validation: allows the analyzer to verify .kusto files exist -->
+    <AdditionalFiles Include="**/*.kusto" />
   </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Atc.Aspire.Azure.Kusto\Atc.Aspire.Azure.Kusto.csproj" />
@@ -15,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 

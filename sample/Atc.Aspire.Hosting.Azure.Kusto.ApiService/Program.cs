@@ -28,7 +28,6 @@ app.MapGet(
         => processor.ExecuteQuery(
             new TodoQuery(),
             cancellationToken))
-    .WithName("GetTodos")
-    .WithOpenApi();
+    .WithName("GetTodos");
 
 await app.RunAsync();

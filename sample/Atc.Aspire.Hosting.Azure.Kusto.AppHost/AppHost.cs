@@ -24,7 +24,6 @@ builder.AddProject<Api>("apiservice")
             var order = context.Urls.Count - 1 - index;
 
             url.DisplayText = $"Swagger ({scheme.ToUpper(CultureInfo.InvariantCulture)})";
-            url.DisplayOrder = order;
         }
     });
 
