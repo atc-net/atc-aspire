@@ -6,4 +6,3 @@ global using Aspire.Hosting.Utils;
 global using Atc.Aspire.Testing;
 global using Atc.XUnit;
 global using Microsoft.Extensions.DependencyInjection;
-global using Xunit.Abstractions;

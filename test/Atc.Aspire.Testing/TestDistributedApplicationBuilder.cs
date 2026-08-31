@@ -10,13 +10,9 @@ namespace Aspire.Hosting.Utils;
 /// This class wraps the builder and provides a way to automatically dispose it to prevent test failures from excessive
 /// FileSystemWatcher instances from many tests.
 /// </summary>
-public sealed class TestDistributedApplicationBuilder : IDistributedApplicationBuilder, IDisposable
+public static class TestDistributedApplicationBuilder
 {
-    private readonly DistributedApplicationBuilder _innerBuilder;
-    private bool _disposedValue;
-    private DistributedApplication? _app;
-
-    public static TestDistributedApplicationBuilder Create(DistributedApplicationOperation operation)
+    public static IDistributedApplicationTestingBuilder Create(DistributedApplicationOperation operation)
     {
         var args = operation switch
         {
@@ -28,34 +24,38 @@ public sealed class TestDistributedApplicationBuilder : IDistributedApplicationB
         return Create(args);
     }
 
-    public static TestDistributedApplicationBuilder Create(params string[] args)
-    {
-        return new TestDistributedApplicationBuilder(options => options.Args = args);
-    }
+    public static IDistributedApplicationTestingBuilder Create(params string[] args)
+        => CreateCore(args, configureOptions: null);
 
-    public static TestDistributedApplicationBuilder Create(ITestOutputHelper testOutputHelper, params string[] args)
-    {
-        return new TestDistributedApplicationBuilder(options => options.Args = args, testOutputHelper);
-    }
+    public static IDistributedApplicationTestingBuilder Create(
+        ITestOutputHelper testOutputHelper,
+        params string[] args)
+        => CreateCore(args, configureOptions: null, testOutputHelper);
 
-    public static TestDistributedApplicationBuilder Create(Action<DistributedApplicationOptions>? configureOptions, ITestOutputHelper? testOutputHelper = null)
-    {
-        return new TestDistributedApplicationBuilder(configureOptions, testOutputHelper);
-    }
+    public static IDistributedApplicationTestingBuilder Create(
+        Action<DistributedApplicationOptions>? configureOptions,
+        ITestOutputHelper? testOutputHelper = null)
+        => CreateCore([], configureOptions, testOutputHelper);
 
-    private TestDistributedApplicationBuilder(Action<DistributedApplicationOptions>? configureOptions, ITestOutputHelper? testOutputHelper = null)
+    private static IDistributedApplicationTestingBuilder CreateCore(
+        string[] args,
+        Action<DistributedApplicationOptions>? configureOptions,
+        ITestOutputHelper? testOutputHelper = null)
     {
         var appAssembly = typeof(TestDistributedApplicationBuilder).Assembly;
         var assemblyName = appAssembly.FullName;
 
-        _innerBuilder = BuilderInterceptor.CreateBuilder(Configure);
+        var builder = DistributedApplicationTestingBuilder.Create(args, Configure);
 
-        _innerBuilder.Services.AddHttpClient();
-        _innerBuilder.Services.ConfigureHttpClientDefaults(http => http.AddStandardResilienceHandler());
+        builder.Services.AddHttpClient();
+        builder.Services.ConfigureHttpClientDefaults(http => http.AddStandardResilienceHandler());
+
         if (testOutputHelper is not null)
         {
-            WithTestAndResourceLogging(testOutputHelper);
+            WithTestAndResourceLogging(builder, testOutputHelper);
         }
+
+        return builder;
 
         void Configure(DistributedApplicationOptions applicationOptions, HostApplicationBuilderSettings hostBuilderOptions)
         {
@@ -75,148 +75,14 @@ public sealed class TestDistributedApplicationBuilder : IDistributedApplicationB
         }
     }
 
-    public TestDistributedApplicationBuilder WithTestAndResourceLogging(ITestOutputHelper testOutputHelper)
+    private static void WithTestAndResourceLogging(IDistributedApplicationTestingBuilder builder, ITestOutputHelper testOutputHelper)
     {
-        Services.AddHostedService<ResourceLoggerForwarderService>();
-        Services.AddLogging(builder =>
+        builder.Services.AddHostedService<ResourceLoggerForwarderService>();
+        builder.Services.AddLogging(loggingBuilder =>
         {
-            builder.AddXUnit(testOutputHelper);
-            builder.AddFilter("Aspire.Hosting", LogLevel.Trace);
-            builder.AddFilter("Aspire.CommunityToolkit.Hosting", LogLevel.Trace);
+            loggingBuilder.AddXUnit(testOutputHelper);
+            loggingBuilder.AddFilter("Aspire.Hosting", LogLevel.Trace);
+            loggingBuilder.AddFilter("Aspire.CommunityToolkit.Hosting", LogLevel.Trace);
         });
-        return this;
-    }
-
-    public ConfigurationManager Configuration => _innerBuilder.Configuration;
-
-    public string AppHostDirectory => _innerBuilder.AppHostDirectory;
-
-    public Assembly? AppHostAssembly => _innerBuilder.AppHostAssembly;
-
-    public IHostEnvironment Environment => _innerBuilder.Environment;
-
-    public IServiceCollection Services => _innerBuilder.Services;
-
-    public DistributedApplicationExecutionContext ExecutionContext => _innerBuilder.ExecutionContext;
-
-    public IResourceCollection Resources => _innerBuilder.Resources;
-
-    public IDistributedApplicationEventing Eventing => _innerBuilder.Eventing;
-
-    public IResourceBuilder<T> AddResource<T>(T resource) where T : IResource => _innerBuilder.AddResource(resource);
-
-    [MemberNotNull(nameof(_app))]
-    public DistributedApplication Build() => _app = _innerBuilder.Build();
-
-    public Task<DistributedApplication> BuildAsync(CancellationToken cancellationToken = default) => Task.FromResult(Build());
-
-    public IResourceBuilder<T> CreateResourceBuilder<T>(T resource) where T : IResource
-    {
-        return _innerBuilder.CreateResourceBuilder(resource);
-    }
-
-    public void Dispose()
-    {
-        if (!_disposedValue)
-        {
-            _disposedValue = true;
-            if (_app is null)
-            {
-                try
-                {
-                    Build();
-                }
-                catch
-                {
-                }
-            }
-
-            _app?.Dispose();
-        }
-    }
-
-    private sealed class BuilderInterceptor : IObserver<DiagnosticListener>
-    {
-        private static readonly ThreadLocal<BuilderInterceptor?> s_currentListener = new();
-        private readonly ApplicationBuilderDiagnosticListener _applicationBuilderListener;
-        private readonly Action<DistributedApplicationOptions, HostApplicationBuilderSettings>? _onConstructing;
-
-        private BuilderInterceptor(Action<DistributedApplicationOptions, HostApplicationBuilderSettings>? onConstructing)
-        {
-            _onConstructing = onConstructing;
-            _applicationBuilderListener = new(this);
-        }
-
-        public static DistributedApplicationBuilder CreateBuilder(Action<DistributedApplicationOptions, HostApplicationBuilderSettings> onConstructing)
-        {
-            var interceptor = new BuilderInterceptor(onConstructing);
-            var original = s_currentListener.Value;
-            s_currentListener.Value = interceptor;
-            try
-            {
-                using var subscription = DiagnosticListener.AllListeners.Subscribe(interceptor);
-                return new DistributedApplicationBuilder([]);
-            }
-            finally
-            {
-                s_currentListener.Value = original;
-            }
-        }
-
-        public void OnCompleted()
-        {
-        }
-
-        public void OnError(Exception error)
-        {
-        }
-
-        public void OnNext(DiagnosticListener value)
-        {
-            if (s_currentListener.Value != this)
-            {
-                // Ignore events that aren't for this listener
-                return;
-            }
-
-            if (value.Name == "Aspire.Hosting")
-            {
-                _applicationBuilderListener.Subscribe(value);
-            }
-        }
-
-        private sealed class ApplicationBuilderDiagnosticListener(BuilderInterceptor owner) : IObserver<KeyValuePair<string, object?>>
-        {
-            private IDisposable? _disposable;
-
-            public void Subscribe(DiagnosticListener listener)
-            {
-                _disposable = listener.Subscribe(this);
-            }
-
-            public void OnCompleted()
-            {
-                _disposable?.Dispose();
-            }
-
-            public void OnError(Exception error)
-            {
-            }
-
-            public void OnNext(KeyValuePair<string, object?> value)
-            {
-                if (s_currentListener.Value != owner)
-                {
-                    // Ignore events that aren't for this listener
-                    return;
-                }
-
-                if (value.Key == "DistributedApplicationBuilderConstructing")
-                {
-                    var (options, innerBuilderOptions) = ((DistributedApplicationOptions, HostApplicationBuilderSettings))value.Value!;
-                    owner._onConstructing?.Invoke(options, innerBuilderOptions);
-                }
-            }
-        }
     }
 }
