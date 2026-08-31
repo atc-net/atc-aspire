@@ -17,7 +17,8 @@ public class KustoContainerResource([ResourceName] string name)
     /// <summary>
     /// Gets the primary endpoint for the EventStore server.
     /// </summary>
-    public EndpointReference PrimaryEndpoint => primaryEndpoint ??= new EndpointReference(this, HttpEndpointName);
+    public EndpointReference PrimaryEndpoint
+        => primaryEndpoint ??= new EndpointReference(this, HttpEndpointName);
 
     /// <summary>
     /// Gets the connection string for the EventStore server.
