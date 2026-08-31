@@ -96,7 +96,8 @@ public static class KustoHostingExtensions
     /// </summary>
     /// <param name="imageType">The container image type.</param>
     /// <returns>Tuple containing the image and tag.</returns>
-    private static (string Image, string Tag) GetImageAndTag(KustoContainerImageType imageType)
+    private static (string Image, string Tag) GetImageAndTag(
+        KustoContainerImageType imageType)
         => imageType switch
         {
             KustoContainerImageType.MarinerLinux => (KustoContainerImageTags.MarinerLinuxImage, KustoContainerImageTags.DefaultTag),
@@ -107,13 +108,9 @@ public static class KustoHostingExtensions
         this IResourceBuilder<KustoContainerResource> builder) =>
         builder.WithOtlpExporter();
 
-    internal static ICslQueryProvider CreateCslQueryProvider(string? connectionString)
-    {
-        if (connectionString is null)
-        {
-            throw new InvalidOperationException("Connection string is unavailable");
-        }
-
-        return KustoClientFactory.CreateCslQueryProvider(new KustoConnectionStringBuilder(connectionString));
-    }
+    internal static ICslQueryProvider CreateCslQueryProvider(
+        string? connectionString) =>
+        connectionString is null
+            ? throw new InvalidOperationException("Connection string is unavailable")
+            : KustoClientFactory.CreateCslQueryProvider(new KustoConnectionStringBuilder(connectionString));
 }

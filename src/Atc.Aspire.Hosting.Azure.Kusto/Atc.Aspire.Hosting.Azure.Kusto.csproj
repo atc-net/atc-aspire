@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting" Version="9.4.1" />
-    <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="14.0.1" />
+    <PackageReference Include="Aspire.Hosting" Version="13.5.3" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="14.2.1" />
   </ItemGroup>
 
 </Project>
