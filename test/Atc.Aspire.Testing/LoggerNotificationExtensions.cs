@@ -92,7 +92,7 @@ public static class LoggerNotificationExtensions
         string? resourceName = null,
         CancellationToken cancellationToken = default)
     {
-        var table = await logTexts.ToListAsync(cancellationToken).ConfigureAwait(false);
+        var table = logTexts.ToList();
         try
         {
             await app.WaitForTextAsync((log) =>

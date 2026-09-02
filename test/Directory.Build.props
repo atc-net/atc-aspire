@@ -10,13 +10,22 @@
     <Nullable>annotations</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Label="Testing Platform">
+  <!--
+    Projects under 'test/' are runnable test projects by default. Shared test helper
+    libraries (e.g. Atc.Aspire.Testing) opt out by setting IsTestRunnerProject=false in
+    their own Directory.Build.props so they are not discovered/executed by 'dotnet test'.
+  -->
+  <PropertyGroup>
+    <IsTestRunnerProject Condition="'$(IsTestRunnerProject)' == ''">true</IsTestRunnerProject>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Testing Platform" Condition="'$(IsTestRunnerProject)' == 'true'">
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsTestRunnerProject)' == 'true'">
     <PackageReference Include="Atc.Test" Version="3.1.1" />
     <PackageReference Include="Atc.XUnit" Version="3.0.186" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" PrivateAssets="All" />
@@ -29,7 +38,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsTestRunnerProject)' == 'true'">
     <Using Include="Atc.Test" />
     <Using Include="AutoFixture" />
     <Using Include="AutoFixture.Xunit3" />
