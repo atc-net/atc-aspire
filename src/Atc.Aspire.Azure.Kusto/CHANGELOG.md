@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.7.0...Atc.Aspire.Azure.Kusto@v1.8.0) (2026-09-02)
+
+
+### New features
+
+* **client:** resolve Kusto database name from connection string ([3f3714a](https://github.com/atc-net/atc-aspire/commit/3f3714a84fa79a518737df5acdf0a708329cb89a))
+
 ## [1.7.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Azure.Kusto@v1.6.0...Atc.Aspire.Azure.Kusto@v1.7.0) (2025-08-13)
 
 
