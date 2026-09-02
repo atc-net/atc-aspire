@@ -12,12 +12,16 @@ public static class LoggerNotificationExtensions
     /// <remarks>
     /// This has been copied from the Aspire.Hosting.Tests project and will likely be removed in the future.
     /// </remarks>
-    public static Task WaitForTextAsync(this DistributedApplication app, string logText, string? resourceName = null, CancellationToken cancellationToken = default)
+    public static Task WaitForTextAsync(
+        this DistributedApplication app,
+        string logText,
+        string? resourceName = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentException.ThrowIfNullOrEmpty(logText);
 
-        return WaitForTextAsync(app, (log) => log.Contains(logText), resourceName, cancellationToken);
+        return WaitForTextAsync(app, (log) => log.Contains(logText, StringComparison.OrdinalIgnoreCase), resourceName, cancellationToken);
     }
 
     /// <summary>
@@ -30,12 +34,16 @@ public static class LoggerNotificationExtensions
     /// <remarks>
     /// This has been copied from the Aspire.Hosting.Tests project and will likely be removed in the future.
     /// </remarks>
-    public static Task WaitForTextAsync(this DistributedApplication app, IEnumerable<string> logTexts, string? resourceName = null, CancellationToken cancellationToken = default)
+    public static Task WaitForTextAsync(
+        this DistributedApplication app,
+        IEnumerable<string> logTexts,
+        string? resourceName = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentNullException.ThrowIfNull(logTexts);
 
-        return app.WaitForTextAsync((log) => logTexts.Any(x => log.Contains(x)), resourceName, cancellationToken);
+        return app.WaitForTextAsync((log) => logTexts.Any(x => log.Contains(x, StringComparison.OrdinalIgnoreCase)), resourceName, cancellationToken);
     }
 
     /// <summary>
@@ -48,7 +56,11 @@ public static class LoggerNotificationExtensions
     /// <remarks>
     /// This has been copied from the Aspire.Hosting.Tests project and will likely be removed in the future.
     /// </remarks>
-    public static Task WaitForTextAsync(this DistributedApplication app, Predicate<string> predicate, string? resourceName = null, CancellationToken cancellationToken = default)
+    public static Task WaitForTextAsync(
+        this DistributedApplication app,
+        Predicate<string> predicate,
+        string? resourceName = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentNullException.ThrowIfNull(predicate);
@@ -74,16 +86,20 @@ public static class LoggerNotificationExtensions
     /// <remarks>
     /// This has been copied from the Aspire.Hosting.Tests project and will likely be removed in the future.
     /// </remarks>
-    public static async Task WaitForAllTextAsync(this DistributedApplication app, IEnumerable<string> logTexts, string? resourceName = null, CancellationToken cancellationToken = default)
+    public static async Task WaitForAllTextAsync(
+        this DistributedApplication app,
+        IEnumerable<string> logTexts,
+        string? resourceName = null,
+        CancellationToken cancellationToken = default)
     {
-        var table = logTexts.ToList();
+        var table = await logTexts.ToListAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             await app.WaitForTextAsync((log) =>
             {
                 foreach (var text in table)
                 {
-                    if (log.Contains(text))
+                    if (log.Contains(text, StringComparison.OrdinalIgnoreCase))
                     {
                         table.Remove(text);
                         break;
@@ -99,7 +115,12 @@ public static class LoggerNotificationExtensions
         }
     }
 
-    private static async Task WatchNotifications(DistributedApplication app, string? resourceName, Predicate<string> predicate, TaskCompletionSource tcs, CancellationTokenSource cancellationTokenSource)
+    private static async Task WatchNotifications(
+        DistributedApplication app,
+        string? resourceName,
+        Predicate<string> predicate,
+        TaskCompletionSource tcs,
+        CancellationTokenSource cancellationTokenSource)
     {
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         var resourceLoggerService = app.Services.GetRequiredService<ResourceLoggerService>();
@@ -129,7 +150,7 @@ public static class LoggerNotificationExtensions
         catch (OperationCanceledException)
         {
             // Expected if the application stops prematurely or the text was detected.
-            tcs.TrySetCanceled();
+            tcs.TrySetCanceled(cancellationTokenSource.Token);
         }
         catch (Exception ex)
         {
