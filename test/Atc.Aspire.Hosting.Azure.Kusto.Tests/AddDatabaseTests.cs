@@ -81,8 +81,8 @@ public sealed class AddDatabaseTests
         var appModel = app.Services.GetRequiredService<DistributedApplicationModel>();
 
         // Assert
-        var database = Assert.Single(appModel.Resources.OfType<KustoDatabaseResource>());
-        var properties = await ((IResourceWithConnectionString)database).GetConnectionProperties().ToListAsync(TestContext.Current.CancellationToken);
+        IResourceWithConnectionString database = Assert.Single(appModel.Resources.OfType<KustoDatabaseResource>());
+        var properties = await database.GetConnectionProperties().ToListAsync(TestContext.Current.CancellationToken);
 
         Assert.Contains(properties, p => p.Key == "Uri");
         Assert.Contains(properties, p => p.Key == "DatabaseName");
