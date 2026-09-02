@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Aspire.AppHost.Sdk/13.5.3">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <IsTestProject>false</IsTestProject>
     <IsPackable>false</IsPackable>
     <AspireUseCliBundle>true</AspireUseCliBundle>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--
+    Atc.Aspire.Testing is a shared test helper library (an Aspire AppHost), not a runnable
+    test project. Opt out of the test-runner packages and Microsoft Testing Platform props
+    added by the parent test/Directory.Build.props so 'dotnet test' does not try to execute
+    it (which otherwise fails the run with 'Zero tests ran').
+  -->
+  <PropertyGroup>
+    <IsTestRunnerProject>false</IsTestRunnerProject>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+</Project>
