@@ -9,13 +9,13 @@ public class AppHostTests(AspireIntegrationTestFixture<Projects.Atc_Aspire_Hosti
         // Arrange
         const string resourceName = "kusto-emulator";
         await fixture.ResourceNotificationService
-            .WaitForResourceHealthyAsync(resourceName)
-            .WaitAsync(TimeSpan.FromMinutes(5));
+            .WaitForResourceHealthyAsync(resourceName, TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         var httpClient = fixture.CreateHttpClient(resourceName);
 
         // Act
-        var response = await httpClient.GetAsync("/");
+        var response = await httpClient.GetAsync("/", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -28,20 +28,20 @@ public class AppHostTests(AspireIntegrationTestFixture<Projects.Atc_Aspire_Hosti
         const string resourceName = "apiservice";
 
         await fixture.ResourceNotificationService
-            .WaitForResourceHealthyAsync("kusto-emulator")
-            .WaitAsync(TimeSpan.FromMinutes(5));
+            .WaitForResourceHealthyAsync("kusto-emulator", TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         await fixture.ResourceNotificationService
-            .WaitForResourceHealthyAsync(resourceName)
-            .WaitAsync(TimeSpan.FromMinutes(5));
+            .WaitForResourceHealthyAsync(resourceName, TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         var httpClient = fixture.CreateHttpClient(resourceName);
 
         // Act & Assert
-        var getResponse = await httpClient.GetAsync("/todo");
+        var getResponse = await httpClient.GetAsync("/todo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
-        var data = await getResponse.Content.ReadFromJsonAsync<List<object>>();
+        var data = await getResponse.Content.ReadFromJsonAsync<List<object>>(cancellationToken: TestContext.Current.CancellationToken);
         data
             .Should().NotBeNull()
             .And.NotBeEmpty()
