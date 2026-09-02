@@ -28,7 +28,7 @@ public sealed class AspireKustoExtensionsTests
         // Act
         using var host = builder.Build();
         var healthCheckService = host.Services.GetRequiredService<HealthCheckService>();
-        var report = await healthCheckService.CheckHealthAsync();
+        var report = await healthCheckService.CheckHealthAsync(TestContext.Current.CancellationToken);
 
         // Assert
         const string expectedName = $"Kusto_{ConnectionName}";
@@ -143,7 +143,8 @@ public sealed class AspireKustoExtensionsTests
         Assert.Throws<ArgumentException>(() => builder.ConfigureAzureDataExplorer(string.Empty));
     }
 
-    private static HostApplicationBuilder CreateBuilder(IDictionary<string, string?> configuration)
+    private static HostApplicationBuilder CreateBuilder(
+        IDictionary<string, string?> configuration)
     {
         var builder = Host.CreateEmptyApplicationBuilder(null);
         builder.Configuration.AddInMemoryCollection(configuration);

@@ -72,6 +72,18 @@ Provide the Kusto connection string under ConnectionStrings in your configuratio
 }
 ```
 
+The connection string may be a plain cluster URI, or a Kusto connection string that also carries the database via `Initial Catalog`. When present, the database name is resolved automatically (no need to set `DatabaseName` separately):
+
+```json
+{
+    "ConnectionStrings": {
+        "kusto": "https://your-cluster.kusto.windows.net;Initial Catalog=MyDatabase"
+    }
+}
+```
+
+> When using the `Atc.Aspire.Hosting.Azure.Kusto` package, a referenced database resource supplies this format automatically, so `builder.ConfigureAzureDataExplorer("kusto")` resolves both the host address and the database name with no extra configuration.
+
 ### Using Aspire Configuration
 
 Alternatively, configure settings under the Aspire:Kusto:Client section:

@@ -40,13 +40,28 @@ public static class AspireKustoExtensions
 
         if (builder.Configuration.GetConnectionString(connectionName) is { } connectionString)
         {
-            if (Uri.TryCreate(connectionString, UriKind.Absolute, out var uri))
+            // The connection string may be a plain cluster URI (e.g. "http://host:port") or a
+            // Kusto connection string that also carries the database (e.g. "http://host:port;Initial Catalog=mydb").
+            var kcsb = new KustoConnectionStringBuilder(connectionString);
+
+            if (!string.IsNullOrEmpty(kcsb.DataSource) && Uri.TryCreate(kcsb.DataSource, UriKind.Absolute, out var uri))
             {
                 options.HostAddress = uri;
+            }
+            else if (Uri.TryCreate(connectionString, UriKind.Absolute, out var rawUri))
+            {
+                options.HostAddress = rawUri;
             }
             else
             {
                 throw new InvalidOperationException($"Invalid connection string for Kusto: {connectionString}");
+            }
+
+            // KustoConnectionStringBuilder defaults InitialCatalog (e.g. to "NetDefaultDB") even when the
+            // connection string is a bare cluster URI, so only adopt the database when it was explicitly provided.
+            if (ContainsDatabaseKeyword(connectionString) && !string.IsNullOrEmpty(kcsb.InitialCatalog))
+            {
+                options.DatabaseName = kcsb.InitialCatalog;
             }
         }
 
@@ -72,6 +87,10 @@ public static class AspireKustoExtensions
             o.DatabaseName = options.DatabaseName;
             o.Credential = options.Credential;
         });
+
+        static bool ContainsDatabaseKeyword(string connectionString)
+            => connectionString.Contains("Initial Catalog", StringComparison.OrdinalIgnoreCase)
+            || connectionString.Contains("Database=", StringComparison.OrdinalIgnoreCase);
 
         if (!options.DisableHealthChecks)
         {
