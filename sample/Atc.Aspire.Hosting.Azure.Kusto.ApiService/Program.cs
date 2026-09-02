@@ -1,24 +1,18 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.ConfigureAzureDataExplorer("kusto-emulator", o =>
-{
-    o.DatabaseName = builder.Configuration["KustoDatabaseName"] ?? "NetDefaultDB";
-});
+builder.ConfigureAzureDataExplorer("kusto");
 
 builder.AddServiceDefaults();
 
-builder.Services.AddAuthorization();
+var apiVersioningBuilder = builder.Services.ConfigureApiVersioning();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.ConfigureScalar(apiVersioningBuilder);
 
 var app = builder.Build();
 
 app.UseStaticFiles();
 
-app.ConfigureSwagger();
-
-app.UseHttpsRedirection();
+app.ConfigureScalar();
 
 app.MapDefaultEndpoints();
 

@@ -1,2 +1,2 @@
-global using System.Globalization;
+global using Atc.Aspire.Hosting.Azure.Kusto.AppHost.Extensions;
 global using Projects;
