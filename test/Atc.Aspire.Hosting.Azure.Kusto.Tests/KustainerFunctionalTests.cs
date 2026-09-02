@@ -6,22 +6,20 @@ public class KustainerFunctionalTests
     private readonly ITestOutputHelper output;
 
     public KustainerFunctionalTests(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
+        => this.output = output;
 
     [Fact]
     public async Task VerifyKustainerResource()
     {
-        using var builder = TestDistributedApplicationBuilder.Create(output);
+        await using var builder = TestDistributedApplicationBuilder.Create(output);
         var kustainer = builder.AddKustainer();
 
-        await using var app = await builder.BuildAsync();
-        await app.StartAsync();
+        await using var app = await builder.BuildAsync(TestContext.Current.CancellationToken);
+        await app.StartAsync(TestContext.Current.CancellationToken);
 
-        await app.WaitForTextAsync("Connect to this node by using the connection string", kustainer.Resource.Name);
+        await app.WaitForTextAsync("Connect to this node by using the connection string", kustainer.Resource.Name, TestContext.Current.CancellationToken);
 
-        var connectionString = await kustainer.Resource.ConnectionStringExpression.GetValueAsync(default);
+        var connectionString = await kustainer.Resource.ConnectionStringExpression.GetValueAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrEmpty(connectionString));
     }
 }

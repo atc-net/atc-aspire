@@ -39,6 +39,28 @@ public sealed class KustainerPublicApiTests
     }
 
     [Fact]
+    public void AddDatabaseShouldThrowWhenBuilderIsNull()
+    {
+        // Arrange
+        IResourceBuilder<KustoContainerResource> builder = null!;
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() => builder.AddDatabase("mydb"));
+        Assert.Equal(nameof(builder), exception.ParamName);
+    }
+
+    [Fact]
+    public void WithCreationScriptShouldThrowWhenBuilderIsNull()
+    {
+        // Arrange
+        IResourceBuilder<KustoDatabaseResource> builder = null!;
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() => builder.WithCreationScript(".show tables"));
+        Assert.Equal(nameof(builder), exception.ParamName);
+    }
+
+    [Fact]
     public void CtorKustoContainerResourceShouldThrowWhenNameIsNull()
     {
         // Arrange

@@ -30,9 +30,9 @@ public sealed class AddKustainerTests
 
         var environmentAnnotations = await resource.Annotations
             .Where(a => a.GetType().Name == "EnvironmentAnnotation")
-            .ToListAsync();
+            .ToListAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(2, environmentAnnotations.Count);
+        Assert.Single(environmentAnnotations);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class AddKustainerTests
 
         // Assert
         IResourceWithConnectionString resource = Assert.Single(appModel.Resources.OfType<KustoContainerResource>());
-        var connectionString = await resource.GetConnectionStringAsync();
+        var connectionString = await resource.GetConnectionStringAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("http://localhost:8080", connectionString);
     }

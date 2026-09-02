@@ -12,12 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Atc.Aspire.Azure.Kusto\KustoHealthCheck.cs" Link="KustoHealthCheck.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspire.Hosting" Version="13.5.3" />
     <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="14.2.1" />
+    <PackageReference Include="Polly.Core" Version="8.7.0" />
   </ItemGroup>
 
 </Project>
