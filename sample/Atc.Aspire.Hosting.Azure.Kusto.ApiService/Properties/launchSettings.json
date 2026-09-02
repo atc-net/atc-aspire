@@ -3,7 +3,7 @@
     "Atc.Aspire.Hosting.Azure.Kusto.ApiService": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "scalar/v1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

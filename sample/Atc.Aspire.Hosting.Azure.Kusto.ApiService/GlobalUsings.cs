@@ -1,4 +1,9 @@
+global using Asp.Versioning;
 global using Atc.Aspire.Hosting.Azure.Kusto.ApiService.Contracts;
 global using Atc.Aspire.Hosting.Azure.Kusto.ApiService.Extensions;
+global using Atc.Aspire.Hosting.Azure.Kusto.ApiService.Options;
 global using Atc.Aspire.Hosting.Azure.Kusto.ApiService.Queries;
 global using Atc.Kusto;
+global using Atc.Rest.MinimalApi.Versioning;
+global using Microsoft.Extensions.Options;
+global using Scalar.AspNetCore;
