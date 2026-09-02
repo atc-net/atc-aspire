@@ -574,6 +574,8 @@ dotnet_diagnostic.S8970.severity = none             # Remove this null-forgiving
 ##########################################
 [*.{cs,csx,cake}]
 
+MA0051.maximum_lines_per_method = 100
+
 dotnet_diagnostic.S3236.severity = none              # Remove this argument from the method call; it hides the caller information
 dotnet_diagnostic.S3241.severity = none              # Private methods are intended for use only within their scope
 
