@@ -1,7 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// Copied from aspire
-
 namespace Aspire.Hosting.Utils;
 
 /// <summary>
@@ -12,7 +8,8 @@ namespace Aspire.Hosting.Utils;
 /// </summary>
 public static class TestDistributedApplicationBuilder
 {
-    public static IDistributedApplicationTestingBuilder Create(DistributedApplicationOperation operation)
+    public static IDistributedApplicationTestingBuilder Create(
+        DistributedApplicationOperation operation)
     {
         var args = operation switch
         {
@@ -24,7 +21,8 @@ public static class TestDistributedApplicationBuilder
         return Create(args);
     }
 
-    public static IDistributedApplicationTestingBuilder Create(params string[] args)
+    public static IDistributedApplicationTestingBuilder Create(
+        params string[] args)
         => CreateCore(args, configureOptions: null);
 
     public static IDistributedApplicationTestingBuilder Create(
@@ -57,7 +55,9 @@ public static class TestDistributedApplicationBuilder
 
         return builder;
 
-        void Configure(DistributedApplicationOptions applicationOptions, HostApplicationBuilderSettings hostBuilderOptions)
+        void Configure(
+            DistributedApplicationOptions applicationOptions,
+            HostApplicationBuilderSettings hostBuilderOptions)
         {
             hostBuilderOptions.EnvironmentName = Environments.Development;
             hostBuilderOptions.ApplicationName = appAssembly.GetName().Name;
@@ -75,7 +75,9 @@ public static class TestDistributedApplicationBuilder
         }
     }
 
-    private static void WithTestAndResourceLogging(IDistributedApplicationTestingBuilder builder, ITestOutputHelper testOutputHelper)
+    private static void WithTestAndResourceLogging(
+        IDistributedApplicationTestingBuilder builder,
+        ITestOutputHelper testOutputHelper)
     {
         builder.Services.AddHostedService<ResourceLoggerForwarderService>();
         builder.Services.AddLogging(loggingBuilder =>

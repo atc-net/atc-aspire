@@ -1,7 +1,3 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// Copied from https://github.com/dotnet/aspire/blob/4636116dc38bd3e116bd6a38f4ff0e0eee942fc8/src/Aspire.Hosting.Testing/ResourceLoggerForwarderService.cs
-
 namespace Aspire.Hosting.Testing;
 
 /// <summary>
@@ -21,11 +17,9 @@ internal sealed class ResourceLoggerForwarderService(
     public Action<string>? OnResourceLog { get; set; }
 
     /// <inheritdoc/>
+    // We need to pass the stopping token in here because the ResourceNotificationService doesn't stop on host shutdown
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        // We need to pass the stopping token in here because the ResourceNotificationService doesn't stop on host shutdown
-        return WatchNotifications(stoppingToken);
-    }
+        => WatchNotifications(stoppingToken);
 
     private async Task WatchNotifications(CancellationToken cancellationToken)
     {
@@ -53,7 +47,10 @@ internal sealed class ResourceLoggerForwarderService(
         }
     }
 
-    private async Task WatchResourceLogs(IResource resource, string resourceId, CancellationToken cancellationToken)
+    private async Task WatchResourceLogs(
+        IResource resource,
+        string resourceId,
+        CancellationToken cancellationToken)
     {
         try
         {

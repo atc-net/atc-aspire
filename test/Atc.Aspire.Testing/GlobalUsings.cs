@@ -1,7 +1,3 @@
-global using System.Diagnostics;
-global using System.Diagnostics.CodeAnalysis;
-global using System.Reflection;
-global using Aspire.Hosting.Eventing;
 global using Aspire.Hosting.Testing;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
