@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.4.0...Atc.Aspire.Hosting.Azure.Kusto@v1.5.0) (2026-09-03)
+
+
+### New features
+
+* **hosting:** add Kusto database resources, creation scripts, two-tier health checks, resilience and dashboard commands ([f62df60](https://github.com/atc-net/atc-aspire/commit/f62df6015c4ba63ed7cb1aa8c52785eda771c212))
+
 ## [1.4.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.3.0...Atc.Aspire.Hosting.Azure.Kusto@v1.4.0) (2025-08-13)
 
 
