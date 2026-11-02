@@ -1,27 +1,12 @@
 namespace Atc.Aspire.Hosting.Azure.IoTHub.Internal;
 
 /// <summary>
-/// Reads an IoT Hub's routes, custom endpoints and consumer groups through Azure Resource Manager,
-/// with the developer's existing Azure sign-in. It finds the hub by name, so no subscription or resource group is needed.
+/// Reads an IoT Hub's routes, custom endpoints and consumer groups through Azure Resource Manager.
+/// It finds the hub by name, so no subscription or resource group is needed.
 /// </summary>
-/// <param name="credential">The Azure credential.</param>
+/// <param name="credential">The Azure credential, from <see cref="AzureSignIn"/>.</param>
 internal sealed partial class ArmIoTHubSettingsReader(TokenCredential credential)
 {
-    /// <summary>
-    /// Creates a reader that signs in like Aspire does when it provisions Azure resources, but never with a browser
-    /// or a managed identity: e.g. with the Azure CLI or Visual Studio sign-in.
-    /// </summary>
-    /// <param name="tenantId">The tenant to sign in to (<c>Azure:TenantId</c>), or <see langword="null"/> for the default.</param>
-    /// <returns>The reader.</returns>
-    public static ArmIoTHubSettingsReader Create(string? tenantId)
-        => new(new DefaultAzureCredential(new DefaultAzureCredentialOptions
-        {
-            TenantId = tenantId,
-            ExcludeManagedIdentityCredential = true,
-            ExcludeInteractiveBrowserCredential = true,
-            AdditionallyAllowedTenants = { "*" },
-        }));
-
     /// <summary>
     /// Reads the settings of an IoT Hub.
     /// </summary>
@@ -33,7 +18,7 @@ internal sealed partial class ArmIoTHubSettingsReader(TokenCredential credential
         CancellationToken cancellationToken)
     {
         // The name goes into a Resource Graph query, so only names IoT Hub allows get there.
-        if (!HubName().IsMatch(hubName))
+        if (!IsHubName(hubName))
         {
             return IoTHubSettingsReadResult.NotVerified($"'{hubName}' isn't an IoT Hub name.");
         }
@@ -105,7 +90,14 @@ internal sealed partial class ArmIoTHubSettingsReader(TokenCredential credential
             [.. consumerGroups]);
     }
 
-    private static async Task<ResourceIdentifier?> FindAsync(
+    /// <summary>
+    /// Finds an IoT Hub by name in the subscriptions the account can read.
+    /// </summary>
+    /// <param name="arm">The Azure Resource Manager client.</param>
+    /// <param name="hubName">The IoT Hub name, already checked against the allowed characters.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The hub's resource id, or <see langword="null"/> when the account sees no hub with the name.</returns>
+    internal static async Task<ResourceIdentifier?> FindAsync(
         ArmClient arm,
         string hubName,
         CancellationToken cancellationToken)
@@ -131,6 +123,14 @@ internal sealed partial class ArmIoTHubSettingsReader(TokenCredential credential
             ? new ResourceIdentifier(id)
             : null;
     }
+
+    /// <summary>
+    /// Gets whether a name is one IoT Hub allows: 3 to 50 letters, digits and hyphens.
+    /// </summary>
+    /// <param name="hubName">The name.</param>
+    /// <returns><see langword="true"/> for an IoT Hub name.</returns>
+    internal static bool IsHubName(string hubName)
+        => HubName().IsMatch(hubName);
 
     // IoT Hub names have 3 to 50 letters, digits and hyphens.
     [GeneratedRegex("^[A-Za-z0-9-]{3,50}$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]

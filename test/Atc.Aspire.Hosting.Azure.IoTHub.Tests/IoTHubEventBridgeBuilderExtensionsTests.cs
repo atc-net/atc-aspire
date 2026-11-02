@@ -110,6 +110,39 @@ public sealed class IoTHubEventBridgeBuilderExtensionsTests
         result.Should().Be(shown ? ResourceCommandState.Enabled : ResourceCommandState.Hidden);
     }
 
+    [Theory]
+    [InlineData("Waiting for IoT Hub setup", "Missing: a route for device lifecycle events to the built-in endpoint", true)]
+    [InlineData("Running", "Not verified: Not signed in to Azure, e.g. with 'az login'.", true)]
+    [InlineData("Running", "Verified", false)]
+    [InlineData("NotStarted", null, false)]
+    public void SetupCommand_StateAndSetup_IsShownOnlyWhenTheHubMissesSomethingOrIsNotVerified(
+        string state,
+        string? setup,
+        bool shown)
+    {
+        // Arrange
+        var command = AddBridge(DistributedApplication.CreateBuilder())
+            .Resource.Annotations.OfType<ResourceCommandAnnotation>()
+            .Single(x => x.Name == "iothub-bridge-setup");
+
+        using var services = new ServiceCollection().BuildServiceProvider();
+
+        // Act
+        var result = command.UpdateState(new UpdateCommandStateContext
+        {
+            ResourceSnapshot = new CustomResourceSnapshot
+            {
+                ResourceType = "IoTHubEventBridge",
+                State = state,
+                Properties = setup is null ? [] : [new ResourcePropertySnapshot("iothub.setup", setup)],
+            },
+            Services = services,
+        });
+
+        // Assert
+        result.Should().Be(shown ? ResourceCommandState.Enabled : ResourceCommandState.Hidden);
+    }
+
     [Fact]
     public void WithWebSockets_SetsIt()
         => AddBridge(DistributedApplication.CreateBuilder())

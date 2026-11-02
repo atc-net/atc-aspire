@@ -8,6 +8,7 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
     public const string PausedState = "Paused";
     public const string FailedState = "Failed";
     public const string WaitingForSetupState = "Waiting for IoT Hub setup";
+    public const string NotVerifiedPrefix = "Not verified: ";
 
     // Events of devices that start with the AppHost may be raised just before the bridge reads its first event.
     private static readonly TimeSpan StartTimeMargin = TimeSpan.FromSeconds(30);
@@ -17,7 +18,7 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
     private static readonly TimeSpan SetupCheckTimeout = TimeSpan.FromSeconds(30);
 
     private readonly IoTHubEventBridgeResource resource;
-    private readonly Func<string, CancellationToken, Task<IoTHubSettingsReadResult>> readSettings;
+    private readonly IoTHubSetupClient setup;
     private readonly ResourceNotificationService notifications;
     private readonly ILogger logger;
     private readonly CancellationToken stopping;
@@ -29,25 +30,27 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
     private CancellationTokenSource? run;
     private Task? runTask;
     private volatile bool runFailed;
+    private volatile bool waitingForSetup;
+    private volatile bool setUpByCommand;
     private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventBridgeController"/> class.
     /// </summary>
     /// <param name="resource">The bridge resource.</param>
-    /// <param name="readSettings">Reads the settings of an IoT Hub by name, to check its setup.</param>
+    /// <param name="setup">Checks and sets up the IoT Hub.</param>
     /// <param name="notifications">The notification service that publishes the resource's state.</param>
     /// <param name="logger">The resource logger.</param>
     /// <param name="stopping">Cancelled when the AppHost stops.</param>
     public EventBridgeController(
         IoTHubEventBridgeResource resource,
-        Func<string, CancellationToken, Task<IoTHubSettingsReadResult>> readSettings,
+        IoTHubSetupClient setup,
         ResourceNotificationService notifications,
         ILogger logger,
         CancellationToken stopping)
     {
         this.resource = resource;
-        this.readSettings = readSettings;
+        this.setup = setup;
         this.notifications = notifications;
         this.logger = logger;
         this.stopping = stopping;
@@ -179,6 +182,71 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Checks the IoT Hub, signing in to Azure with the browser if needed, and adds what the bridge lacks once the developer
+    /// confirms. Starts the bridge when it waited for the setup. Doesn't change a hub that others use.
+    /// </summary>
+    /// <param name="cancellationToken">The command's cancellation token.</param>
+    /// <returns>The command's result.</returns>
+    public async Task<ExecuteCommandResult> SetUpAsync(
+        CancellationToken cancellationToken)
+    {
+        // Not under the gate: signing in and confirming wait for the developer, which mustn't hold up Pause or shutdown.
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, stopping);
+
+        try
+        {
+            var iotHub = await GetIoTHubAsync();
+            var result = await CheckForSetupAsync(iotHub, cancellation.Token);
+
+            if (!result.IsComplete)
+            {
+                var missing = DescribeMissing(result);
+                if (result.BlockedReason is not null)
+                {
+                    return SetupFailed(
+                        $"The bridge won't change IoT Hub '{iotHub.HubName}', because {result.BlockedReason}. Add what's missing yourself: {missing}.");
+                }
+
+                var confirmed = await setup.Confirm(
+                    $"Set up IoT Hub '{iotHub.HubName}'",
+                    $"The bridge adds to the hub:\n\n{string.Concat(result.Missing.Select(x => $"- {IoTHubSetupCheck.Describe(x, resource.ConsumerGroup)}\n"))}\nIt changes nothing else.",
+                    cancellation.Token);
+
+                if (!confirmed)
+                {
+                    return CommandResults.Canceled();
+                }
+
+                await setup.Apply(iotHub.HubName, result.Missing, resource.ConsumerGroup, cancellation.Token);
+                LogSetupApplied(iotHub.HostName, missing);
+
+                // Checked again, so "Verified" is what Azure reports, not what the bridge expects.
+                var after = await CheckForSetupAsync(iotHub, cancellation.Token);
+                if (!after.IsComplete)
+                {
+                    return SetupFailed($"IoT Hub '{iotHub.HubName}' still lacks: {DescribeMissing(after)}.");
+                }
+            }
+
+            setUpByCommand = true;
+            LogSetupVerified(iotHub.HostName);
+            await PublishSetupAsync("Verified");
+
+            if (waitingForSetup)
+            {
+                _ = StartAsync();
+                return CommandResults.Success("Set up the IoT Hub. Starting the bridge.");
+            }
+
+            return CommandResults.Success("The IoT Hub is set up for the bridge.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return SetupFailed(ex.Message);
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref disposed, 1) == 1)
@@ -222,13 +290,7 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
             State = KnownResourceStates.Starting,
         });
 
-        var connectionString = await resource.IotHubConnectionString.GetValueAsync(stopping);
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException($"The parameter '{resource.IotHubConnectionString.Name}' has no IoT Hub connection string.");
-        }
-
-        var iotHub = IoTHubConnectionInfo.Parse(connectionString);
+        var iotHub = await GetIoTHubAsync();
         var deviceIds = await GetDeviceIdsAsync();
         if (!await CheckSetupAsync(iotHub))
         {
@@ -282,67 +344,16 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
         LogRunning(iotHub.HostName, startTime, devices);
     }
 
-    // False when the hub lacks something the bridge needs: the bridge then waits for the hub's setup instead of starting.
-    private async Task<bool> CheckSetupAsync(IoTHubConnectionInfo iotHub)
+    private async Task<IoTHubConnectionInfo> GetIoTHubAsync()
     {
-        var read = await ReadSettingsAsync(iotHub.HubName);
-        if (read.Settings is null)
+        var connectionString = await resource.IotHubConnectionString.GetValueAsync(stopping);
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            // Without a check, e.g. without an Azure sign-in, the hub may well be set up, so the bridge forwards anyway.
-            LogSetupNotVerified(iotHub.HostName, read.NotVerifiedReason!);
-            await PublishSetupAsync($"Not verified: {read.NotVerifiedReason}");
-            return true;
+            throw new InvalidOperationException($"The parameter '{resource.IotHubConnectionString.Name}' has no IoT Hub connection string.");
         }
 
-        var result = IoTHubSetupCheck.Check(read.Settings, resource.ConsumerGroup, resource.Targets.Keys);
-        if (result.IsComplete)
-        {
-            LogSetupVerified(iotHub.HostName);
-            await PublishSetupAsync("Verified");
-            return true;
-        }
-
-        var missing = string.Join("; ", result.Missing.Select(x => IoTHubSetupCheck.Describe(x, resource.ConsumerGroup)));
-        var nextStep = result.BlockedReason is null
-            ? "Add what's missing to the hub, then start the bridge again."
-            : $"The bridge won't change this hub, because {result.BlockedReason}. Add what's missing yourself, then start the bridge again.";
-
-        LogSetupMissing(iotHub.HostName, missing, nextStep);
-
-        await notifications.PublishUpdateAsync(resource, snapshot => snapshot with
-        {
-            State = new ResourceStateSnapshot(WaitingForSetupState, KnownResourceStateStyles.Warn),
-            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, $"Missing: {missing}")),
-        });
-
-        return false;
+        return IoTHubConnectionInfo.Parse(connectionString);
     }
-
-    private async Task<IoTHubSettingsReadResult> ReadSettingsAsync(
-        string hubName)
-    {
-        using var timeout = new CancellationTokenSource(SetupCheckTimeout, resource.TimeProvider);
-        using var timeoutOrStopping = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, stopping);
-
-        try
-        {
-            return await readSettings(hubName, timeoutOrStopping.Token);
-        }
-        catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
-        {
-            return IoTHubSettingsReadResult.NotVerified($"Azure didn't answer within {SetupCheckTimeout.TotalSeconds:0} seconds.");
-        }
-        catch (Exception ex) when (!stopping.IsCancellationRequested)
-        {
-            return IoTHubSettingsReadResult.NotVerified(ex.Message);
-        }
-    }
-
-    private Task PublishSetupAsync(string setup)
-        => notifications.PublishUpdateAsync(resource, snapshot => snapshot with
-        {
-            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, setup)),
-        });
 
     // The devices to forward, or null for all devices.
     // A parameter's value is read at start, because the dashboard may ask the developer for it only then.
@@ -367,6 +378,99 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
 
         return deviceIds.ToFrozenSet(StringComparer.Ordinal);
     }
+
+    // False when the hub lacks something the bridge needs: the bridge then waits for the hub's setup instead of starting.
+    private async Task<bool> CheckSetupAsync(IoTHubConnectionInfo iotHub)
+    {
+        waitingForSetup = false;
+
+        // The setup command just verified the hub, possibly after a browser sign-in that the check at start doesn't use.
+        if (setUpByCommand)
+        {
+            await PublishSetupAsync("Verified");
+            return true;
+        }
+
+        var read = await ReadSettingsAsync(iotHub.HubName);
+        if (read.Settings is null)
+        {
+            // Without a check, e.g. without an Azure sign-in, the hub may well be set up, so the bridge forwards anyway.
+            LogSetupNotVerified(iotHub.HostName, read.NotVerifiedReason!);
+            await PublishSetupAsync(NotVerifiedPrefix + read.NotVerifiedReason);
+            return true;
+        }
+
+        var result = IoTHubSetupCheck.Check(read.Settings, resource.ConsumerGroup, resource.Targets.Keys);
+        if (result.IsComplete)
+        {
+            LogSetupVerified(iotHub.HostName);
+            await PublishSetupAsync("Verified");
+            return true;
+        }
+
+        var missing = DescribeMissing(result);
+        var nextStep = result.BlockedReason is null
+            ? "Run Set up IoT Hub, or add what's missing yourself and start the bridge again."
+            : $"The bridge won't change this hub, because {result.BlockedReason}. Add what's missing yourself, then start the bridge again.";
+
+        LogSetupMissing(iotHub.HostName, missing, nextStep);
+
+        waitingForSetup = true;
+        await notifications.PublishUpdateAsync(resource, snapshot => snapshot with
+        {
+            State = new ResourceStateSnapshot(WaitingForSetupState, KnownResourceStateStyles.Warn),
+            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, $"Missing: {missing}")),
+        });
+
+        return false;
+    }
+
+    // Throws when the hub's settings can't be read: the setup can't go on without them.
+    private async Task<IoTHubSetupResult> CheckForSetupAsync(
+        IoTHubConnectionInfo iotHub,
+        CancellationToken cancellationToken)
+    {
+        var read = await setup.ReadSettingsSigningIn(iotHub.HubName, cancellationToken);
+
+        return read.Settings is null
+            ? throw new InvalidOperationException($"Could not read IoT Hub '{iotHub.HubName}': {read.NotVerifiedReason}")
+            : IoTHubSetupCheck.Check(read.Settings, resource.ConsumerGroup, resource.Targets.Keys);
+    }
+
+    private ExecuteCommandResult SetupFailed(string error)
+    {
+        LogSetupFailed(error);
+        return CommandResults.Failure(error);
+    }
+
+    private string DescribeMissing(IoTHubSetupResult result)
+        => string.Join("; ", result.Missing.Select(x => IoTHubSetupCheck.Describe(x, resource.ConsumerGroup)));
+
+    private async Task<IoTHubSettingsReadResult> ReadSettingsAsync(
+        string hubName)
+    {
+        using var timeout = new CancellationTokenSource(SetupCheckTimeout, resource.TimeProvider);
+        using var timeoutOrStopping = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, stopping);
+
+        try
+        {
+            return await setup.ReadSettingsQuietly(hubName, timeoutOrStopping.Token);
+        }
+        catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
+        {
+            return IoTHubSettingsReadResult.NotVerified($"Azure didn't answer within {SetupCheckTimeout.TotalSeconds:0} seconds.");
+        }
+        catch (Exception ex) when (!stopping.IsCancellationRequested)
+        {
+            return IoTHubSettingsReadResult.NotVerified(ex.Message);
+        }
+    }
+
+    private Task PublishSetupAsync(string setup)
+        => notifications.PublishUpdateAsync(resource, snapshot => snapshot with
+        {
+            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, setup)),
+        });
 
     private void StartRun(EventBridge runningBridge)
     {
