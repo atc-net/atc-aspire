@@ -14,4 +14,6 @@ internal static class LoggingEventIdConstants
     public const int SetupVerified = 309;
     public const int SetupNotVerified = 310;
     public const int SetupMissing = 311;
+    public const int SetupApplied = 312;
+    public const int SetupFailed = 313;
 }

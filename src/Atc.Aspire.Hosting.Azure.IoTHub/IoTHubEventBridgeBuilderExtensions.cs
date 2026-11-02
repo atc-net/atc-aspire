@@ -238,12 +238,21 @@ public static class IoTHubEventBridgeBuilderExtensions
         var lifetime = initializeEvent.Services.GetRequiredService<IHostApplicationLifetime>();
         var configuration = initializeEvent.Services.GetRequiredService<IConfiguration>();
 
+        var interaction = initializeEvent.Services.GetRequiredService<IInteractionService>();
+
         // The same tenant setting Aspire uses when it provisions Azure resources.
-        var readSettings = resource.ReadSettings ?? ArmIoTHubSettingsReader.Create(configuration["Azure:TenantId"]).ReadAsync;
+        var tenantId = configuration["Azure:TenantId"];
+        var signingIn = AzureSignIn.ExistingOrBrowser(tenantId);
+
+        var setup = new IoTHubSetupClient(
+            resource.ReadSettings ?? new ArmIoTHubSettingsReader(AzureSignIn.Existing(tenantId)).ReadAsync,
+            resource.ReadSettings ?? new ArmIoTHubSettingsReader(signingIn).ReadAsync,
+            resource.ApplySetup ?? new ArmIoTHubSetupWriter(signingIn).ApplyAsync,
+            resource.ConfirmSetup ?? ((title, message, commandCancellationToken) => ConfirmSetupAsync(interaction, title, message, commandCancellationToken)));
 
         var controller = new EventBridgeController(
             resource,
-            readSettings,
+            setup,
             initializeEvent.Notifications,
             initializeEvent.Logger,
             lifetime.ApplicationStopping);
@@ -276,6 +285,19 @@ public static class IoTHubEventBridgeBuilderExtensions
                         : ResourceCommandState.Hidden,
                 })
             .WithCommand(
+                name: "iothub-bridge-setup",
+                displayName: "Set up IoT Hub",
+                executeCommand: context => SetUpBridge(builder.Resource, context.CancellationToken),
+                commandOptions: new CommandOptions
+                {
+                    Description = "Signs in to Azure if needed, shows what the IoT Hub lacks for the bridge and adds it once you confirm. Never changes a hub that others use.",
+                    IconName = "Wrench",
+                    IsHighlighted = true,
+                    UpdateState = context => NeedsSetup(context)
+                        ? ResourceCommandState.Enabled
+                        : ResourceCommandState.Hidden,
+                })
+            .WithCommand(
                 name: "iothub-bridge-pause",
                 displayName: "Pause forwarding",
                 executeCommand: _ => PauseBridge(builder.Resource),
@@ -301,6 +323,45 @@ public static class IoTHubEventBridgeBuilderExtensions
                         ? ResourceCommandState.Enabled
                         : ResourceCommandState.Hidden,
                 });
+
+    private static async Task<bool> ConfirmSetupAsync(
+        IInteractionService interaction,
+        string title,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        // Without the dashboard, e.g. when the command is run from the Aspire CLI, nobody can be asked.
+        if (!interaction.IsAvailable)
+        {
+            throw new InvalidOperationException("Set up IoT Hub needs the Aspire dashboard to ask for confirmation.");
+        }
+
+        var result = await interaction.PromptConfirmationAsync(
+            title,
+            message,
+            new MessageBoxInteractionOptions
+            {
+                Intent = MessageIntent.Confirmation,
+                PrimaryButtonText = "Set up",
+                EnableMessageMarkdown = true,
+            },
+            cancellationToken);
+
+        return result is { Canceled: false, Data: true };
+    }
+
+    // The setup helps when the hub misses something, or when the check at start couldn't read the hub.
+    private static bool NeedsSetup(UpdateCommandStateContext context)
+        => IsInState(context, EventBridgeController.WaitingForSetupState) ||
+           (context.ResourceSnapshot.Properties.FirstOrDefault(x => x.Name == EventBridgeController.PropertyNames.Setup)?.Value is string setup &&
+            setup.StartsWith(EventBridgeController.NotVerifiedPrefix, StringComparison.Ordinal));
+
+    private static Task<ExecuteCommandResult> SetUpBridge(
+        IoTHubEventBridgeResource resource,
+        CancellationToken cancellationToken)
+        => resource.Controller is { } controller
+            ? controller.SetUpAsync(cancellationToken)
+            : Task.FromResult(CommandResults.Failure("The bridge has not been initialized."));
 
     private static bool IsInState(
         UpdateCommandStateContext context,

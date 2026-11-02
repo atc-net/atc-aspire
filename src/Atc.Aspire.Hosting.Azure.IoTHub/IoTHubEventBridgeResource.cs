@@ -70,6 +70,12 @@ public sealed class IoTHubEventBridgeResource : Resource, IResourceWithWaitSuppo
     // Null reads the hub's settings through Azure Resource Manager, with the developer's Azure sign-in.
     internal Func<string, CancellationToken, Task<IoTHubSettingsReadResult>>? ReadSettings { get; set; }
 
+    // Null changes the hub through Azure Resource Manager.
+    internal Func<string, IReadOnlyList<IoTHubSetupItem>, string, CancellationToken, Task>? ApplySetup { get; set; }
+
+    // Null asks for confirmation on the dashboard.
+    internal Func<string, string, CancellationToken, Task<bool>>? ConfirmSetup { get; set; }
+
     internal EventBridgeController? Controller { get; set; }
 
     internal void SetTarget(

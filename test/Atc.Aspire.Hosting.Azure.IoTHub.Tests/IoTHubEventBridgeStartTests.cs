@@ -11,8 +11,14 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
     private readonly FakeIoTHubEventReader reader = new("0");
     private readonly FakeEventHubSender lifecycle = new("lifecycle");
     private readonly List<string> senderEventHubs = [];
+    private readonly List<(string Title, string Message)> confirmations = [];
+    private readonly List<(string HubName, IReadOnlyList<IoTHubSetupItem> Missing, string ConsumerGroup)> appliedSetups = [];
     private string? failingEventHub;
     private Func<IoTHubEventBridgeResource, CancellationToken, Task<IoTHubSettingsReadResult>>? readSettings;
+    private IoTHubSettings? hubSettings;
+    private bool confirmSetup = true;
+    private Exception? confirmSetupError;
+    private Exception? applySetupError;
     private string? settingsHubName;
     private DistributedApplication? app;
     private IoTHubConnectionInfo? readerIotHub;
@@ -153,6 +159,142 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
 
         // Assert
         GetProperties()["iothub.setup"].Should().Be("Not verified: Azure didn't answer within 30 seconds.");
+    }
+
+    [Fact]
+    public async Task Setup_HubMissesARoute_AsksAddsItAndStarts()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        hubSettings = TestHubSettings.SetUp() with { Routes = [] };
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Success.Should().BeTrue();
+        await WaitForStateAsync(KnownResourceStates.Running);
+        GetProperties()["iothub.setup"].Should().Be("Verified");
+
+        confirmations.Should().ContainSingle().Which.Should().Be((
+            "Set up IoT Hub 'myhub'",
+            "The bridge adds to the hub:\n\n- a route for device lifecycle events to the built-in endpoint\n\nIt changes nothing else."));
+
+        var applied = appliedSetups.Should().ContainSingle().Subject;
+        applied.HubName.Should().Be("myhub");
+        applied.Missing.Should().Equal(IoTHubSetupItem.DeviceLifecycleEventsRoute);
+        applied.ConsumerGroup.Should().Be("aspire-bridge");
+    }
+
+    [Fact]
+    public async Task Setup_Declined_ChangesNothingAndKeepsWaiting()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        hubSettings = TestHubSettings.SetUp() with { ConsumerGroups = ["$Default"] };
+        confirmSetup = false;
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Canceled.Should().BeTrue();
+        appliedSetups.Should().BeEmpty();
+        GetState().Should().Be("Waiting for IoT Hub setup");
+    }
+
+    [Fact]
+    public async Task Setup_NobodyCanBeAsked_FailsWithTheReasonAndChangesNothing()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        hubSettings = TestHubSettings.SetUp() with { ConsumerGroups = ["$Default"] };
+        confirmSetupError = new InvalidOperationException("Set up IoT Hub needs the Aspire dashboard to ask for confirmation.");
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Canceled.Should().BeFalse();
+        result.Message.Should().Be("Set up IoT Hub needs the Aspire dashboard to ask for confirmation.");
+        appliedSetups.Should().BeEmpty();
+        GetState().Should().Be("Waiting for IoT Hub setup");
+    }
+
+    [Fact]
+    public async Task Setup_HubUsedByOthers_RefusesWithTheReasonWithoutAsking()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        hubSettings = TestHubSettings.SetUp() with { Routes = [], ConsumerGroups = ["$Default", "aspire-bridge", "functionApp"] };
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be(
+            "The bridge won't change IoT Hub 'myhub', because other consumer groups read its built-in endpoint (functionApp). " +
+            "Add what's missing yourself: a route for device lifecycle events to the built-in endpoint.");
+        confirmations.Should().BeEmpty();
+        appliedSetups.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Setup_ApplyingFails_ShowsTheErrorAndKeepsWaiting()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        hubSettings = TestHubSettings.SetUp() with { Routes = [] };
+        applySetupError = new InvalidOperationException("The Azure account may not change IoT Hub 'myhub'; it needs e.g. the Contributor role on the hub.");
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("The Azure account may not change IoT Hub 'myhub'; it needs e.g. the Contributor role on the hub.");
+        GetState().Should().Be("Waiting for IoT Hub setup");
+    }
+
+    [Fact]
+    public async Task Setup_NotVerifiedAtStart_VerifiesWithoutAskingOrRestarting()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        var reads = 0;
+        readSettings = (resource, _) => Task.FromResult(Interlocked.Increment(ref reads) == 1
+            ? IoTHubSettingsReadResult.NotVerified("Not signed in to Azure, e.g. with 'az login'.")
+            : IoTHubSettingsReadResult.Read(TestHubSettings.SetUp(resource.ConsumerGroup)));
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync(KnownResourceStates.Running);
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-setup");
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.Message.Should().Be("The IoT Hub is set up for the bridge.");
+        GetProperties()["iothub.setup"].Should().Be("Verified");
+        GetState().Should().Be(KnownResourceStates.Running);
+        confirmations.Should().BeEmpty();
     }
 
     [Fact]
@@ -472,8 +614,32 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
             settingsHubName = hubName;
 
             return readSettings is null
-                ? Task.FromResult(IoTHubSettingsReadResult.Read(TestHubSettings.SetUp(resource.ConsumerGroup)))
+                ? Task.FromResult(IoTHubSettingsReadResult.Read(hubSettings ?? TestHubSettings.SetUp(resource.ConsumerGroup)))
                 : readSettings(resource, cancellationToken);
+        };
+
+        resource.ConfirmSetup = (title, message, _) =>
+        {
+            if (confirmSetupError is not null)
+            {
+                return Task.FromException<bool>(confirmSetupError);
+            }
+
+            confirmations.Add((title, message));
+            return Task.FromResult(confirmSetup);
+        };
+
+        // Applying the setup sets the hub up, unless a test makes it fail.
+        resource.ApplySetup = (hubName, missing, consumerGroup, _) =>
+        {
+            if (applySetupError is not null)
+            {
+                return Task.FromException(applySetupError);
+            }
+
+            appliedSetups.Add((hubName, missing, consumerGroup));
+            hubSettings = null;
+            return Task.CompletedTask;
         };
 
         // The Event Hubs emulator doesn't run in these tests, so the bridge doesn't wait for it.

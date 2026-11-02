@@ -72,6 +72,20 @@ internal sealed partial class EventBridgeController
         string nextStep);
 
     [LoggerMessage(
+        EventId = LoggingEventIdConstants.SetupApplied,
+        Level = LogLevel.Information,
+        Message = "Set up IoT Hub '{IotHubHostName}': added {Added}.")]
+    private partial void LogSetupApplied(
+        string iotHubHostName,
+        string added);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.SetupFailed,
+        Level = LogLevel.Warning,
+        Message = "IoT Hub setup didn't complete: {Error}")]
+    private partial void LogSetupFailed(string error);
+
+    [LoggerMessage(
         EventId = LoggingEventIdConstants.CountsNotPublished,
         Level = LogLevel.Debug,
         Message = "Could not show the event counts on the dashboard: {Error}")]
