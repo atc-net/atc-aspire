@@ -116,8 +116,8 @@ builder.ConfigureAzureDataExplorer("kusto", settings =>
 
 # Requirements
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-- [.NET Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/setup-tooling?tabs=windows&pivots=visual-studio#install-net-aspire)
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [Aspire 13.6 or later](https://aspire.dev/get-started/prerequisites/)
 
 # How to contribute
 
