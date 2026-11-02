@@ -1,6 +1,6 @@
 # Introduction
 
-This repository contains various host and client integration packages for .NET Aspire.
+This repository contains various host and client integration packages for [Aspire](https://aspire.dev).
 
 # Table of Content
 
@@ -21,7 +21,7 @@ This repository contains various host and client integration packages for .NET A
 
 [![NuGet Version](https://img.shields.io/nuget/v/atc.aspire.hosting.azure.kusto.svg?logo=nuget&style=for-the-badge)](https://www.nuget.org/packages/atc.aspire.hosting.azure.kusto)
 
-The `Atc.Aspire.Hosting.Azure.Kusto` package provides extension methods and resource definitions for the .NET Aspire AppHost to support running [Kusto Emulator](https://learn.microsoft.com/en-us/azure/data-explorer/kusto-emulator-overview) containers.
+The `Atc.Aspire.Hosting.Azure.Kusto` package provides extension methods and resource definitions for the Aspire AppHost to support running [Kusto Emulator](https://learn.microsoft.com/en-us/azure/data-explorer/kusto-emulator-overview) containers.
 
 Read more in the package [README.md](./src/Atc.Aspire.Hosting.Azure.Kusto/README.md)
 
@@ -52,8 +52,8 @@ Read more in the package [README.md](./src/Atc.Aspire.Azure.Kusto/README.md)
 
 # Requirements
 
-* [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-* [.NET Aspire 9.1.0 SDK](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/setup-tooling?tabs=windows&pivots=visual-studio#install-net-aspire)
+* [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+* [Aspire 13.6 or later](https://aspire.dev/get-started/prerequisites/)
 
 # How to contribute
 
