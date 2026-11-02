@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.5.0...Atc.Aspire.Hosting.Azure.Kusto@v1.5.1) (2026-11-02)
+
+
+### Upgrades
+
+* **deps:** upgrade Aspire to 13.6.4 and the test packages ([6db3bd9](https://github.com/atc-net/atc-aspire/commit/6db3bd90a4a2327beaff533d322d23dce301f250))
+
 ## [1.5.0](https://github.com/atc-net/atc-aspire/compare/Atc.Aspire.Hosting.Azure.Kusto@v1.4.0...Atc.Aspire.Hosting.Azure.Kusto@v1.5.0) (2026-09-03)
 
 
