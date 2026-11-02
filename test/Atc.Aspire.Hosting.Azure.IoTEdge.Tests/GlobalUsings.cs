@@ -1,0 +1,24 @@
+global using System.Collections.Immutable;
+global using System.Net;
+global using System.Net.Security;
+global using System.Net.Sockets;
+global using System.Security.Cryptography.X509Certificates;
+global using System.Text.Json.Nodes;
+global using Aspire.Hosting;
+global using Aspire.Hosting.ApplicationModel;
+global using Aspire.Hosting.Eventing;
+global using Atc.Aspire.Hosting.Azure.IoTEdge.Internal;
+global using Atc.Azure.IoT.Services.IoTHub;
+global using Microsoft.Azure.Devices;
+global using Microsoft.Azure.Devices.Common.Exceptions;
+global using Microsoft.Azure.Devices.Shared;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Microsoft.Extensions.Logging.Testing;
+global using Microsoft.Extensions.Time.Testing;
+global using NSubstitute.ExceptionExtensions;
+
+global using MethodParameterModel = Atc.Azure.IoT.Models.MethodParameterModel;
+global using MethodResultModel = Atc.Azure.IoT.Models.MethodResultModel;

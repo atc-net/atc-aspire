@@ -1,0 +1,28 @@
+global using System.Collections.Immutable;
+global using System.Net.Security;
+global using System.Net.Sockets;
+global using System.Runtime.CompilerServices;
+global using System.Security.Cryptography;
+global using System.Security.Cryptography.X509Certificates;
+global using System.Text.Json;
+global using System.Text.Json.Nodes;
+global using System.Text.RegularExpressions;
+global using Aspire.Hosting.ApplicationModel;
+global using Atc.Aspire.Hosting.Azure.IoTEdge;
+global using Atc.Aspire.Hosting.Azure.IoTEdge.Internal;
+global using Atc.Azure.IoT;
+global using Atc.Azure.IoT.Extensions;
+global using Atc.Azure.IoT.Models;
+global using Atc.Azure.IoT.Options;
+global using Atc.Azure.IoT.Services.IoTHub;
+global using Microsoft.Azure.Devices;
+global using Microsoft.Azure.Devices.Common.Exceptions;
+global using Microsoft.Azure.Devices.Shared;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
+
+global using DeploymentManifest = Atc.Aspire.Hosting.Azure.IoTEdge.Internal.DeploymentManifest;
+global using Module = Microsoft.Azure.Devices.Module;

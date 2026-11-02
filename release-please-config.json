@@ -24,6 +24,15 @@
       "extra-files": [
         "Directory.Build.props"
       ]
+    },
+    "src/Atc.Aspire.Hosting.Azure.IoTEdge": {
+      "component": "Atc.Aspire.Hosting.Azure.IoTEdge",
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "pull-request-title-pattern": "chore(iotedge-hosting): release version ${version}",
+      "extra-files": [
+        "Directory.Build.props"
+      ]
     }
   },
   "changelog-sections": [

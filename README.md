@@ -8,6 +8,7 @@ This repository contains various host and client integration packages for .NET A
 - [Table of Content](#table-of-content)
 - [Hosting integrations](#hosting-integrations)
   - [Atc.Aspire.Hosting.Azure.Kusto](#atcaspirehostingazurekusto)
+  - [Atc.Aspire.Hosting.Azure.IoTEdge](#atcaspirehostingazureiotedge)
 - [Client integrations](#client-integrations)
   - [Atc.Aspire.Azure.Kusto](#atcaspireazurekusto)
 - [Requirements](#requirements)
@@ -22,6 +23,14 @@ This repository contains various host and client integration packages for .NET A
 The `Atc.Aspire.Hosting.Azure.Kusto` package provides extension methods and resource definitions for the .NET Aspire AppHost to support running [Kusto Emulator](https://learn.microsoft.com/en-us/azure/data-explorer/kusto-emulator-overview) containers.
 
 Read more in the package [README.md](./src/Atc.Aspire.Hosting.Azure.Kusto/README.md)
+
+## Atc.Aspire.Hosting.Azure.IoTEdge
+
+[![NuGet Version](https://img.shields.io/nuget/v/atc.aspire.hosting.azure.iotedge.svg?logo=nuget&style=for-the-badge)](https://www.nuget.org/packages/atc.aspire.hosting.azure.iotedge)
+
+The `Atc.Aspire.Hosting.Azure.IoTEdge` package runs Azure IoT Edge modules in the Aspire AppHost against a real Azure IoT Hub, either through a local edgeHub container or directly. It provisions the device and module identities, applies the deployment manifest's routes and desired properties, and adds dashboard commands for direct methods, desired properties and module twins.
+
+Read more in the package [README.md](./src/Atc.Aspire.Hosting.Azure.IoTEdge/README.md)
 
 # Client integrations
 
