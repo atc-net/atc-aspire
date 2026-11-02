@@ -33,6 +33,15 @@
       "extra-files": [
         "Directory.Build.props"
       ]
+    },
+    "src/Atc.Aspire.Hosting.Azure.IoTHub": {
+      "component": "Atc.Aspire.Hosting.Azure.IoTHub",
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "pull-request-title-pattern": "chore(iothub-hosting): release version ${version}",
+      "extra-files": [
+        "Directory.Build.props"
+      ]
     }
   },
   "changelog-sections": [

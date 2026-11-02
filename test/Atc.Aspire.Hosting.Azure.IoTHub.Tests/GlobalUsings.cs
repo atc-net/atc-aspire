@@ -1,0 +1,15 @@
+global using System.Globalization;
+global using System.Runtime.CompilerServices;
+global using System.Security.Cryptography;
+global using System.Text;
+global using System.Threading.Channels;
+global using Aspire.Hosting;
+global using Aspire.Hosting.ApplicationModel;
+global using Aspire.Hosting.Eventing;
+global using Atc.Aspire.Hosting.Azure.IoTHub.Internal;
+global using Azure.Messaging.EventHubs;
+global using Azure.Messaging.EventHubs.Consumer;
+global using Microsoft.Azure.Amqp.Transport;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Microsoft.Extensions.Time.Testing;
