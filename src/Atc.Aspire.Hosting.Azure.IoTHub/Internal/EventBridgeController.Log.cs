@@ -49,6 +49,29 @@ internal sealed partial class EventBridgeController
     private partial void LogResumed();
 
     [LoggerMessage(
+        EventId = LoggingEventIdConstants.SetupVerified,
+        Level = LogLevel.Information,
+        Message = "IoT Hub '{IotHubHostName}' is set up for the bridge.")]
+    private partial void LogSetupVerified(string iotHubHostName);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.SetupNotVerified,
+        Level = LogLevel.Information,
+        Message = "Could not check the setup of IoT Hub '{IotHubHostName}': {Reason} Forwarding anyway; if events are missing, check the hub's routes and consumer group.")]
+    private partial void LogSetupNotVerified(
+        string iotHubHostName,
+        string reason);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.SetupMissing,
+        Level = LogLevel.Warning,
+        Message = "IoT Hub '{IotHubHostName}' isn't set up for the bridge. Missing: {Missing}. {NextStep}")]
+    private partial void LogSetupMissing(
+        string iotHubHostName,
+        string missing,
+        string nextStep);
+
+    [LoggerMessage(
         EventId = LoggingEventIdConstants.CountsNotPublished,
         Level = LogLevel.Debug,
         Message = "Could not show the event counts on the dashboard: {Error}")]

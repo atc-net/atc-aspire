@@ -73,6 +73,7 @@ public sealed class IoTHubEventBridgeBuilderExtensionsTests
     [Theory]
     [InlineData("iothub-bridge-start", "NotStarted", true)]
     [InlineData("iothub-bridge-start", "FailedToStart", true)]
+    [InlineData("iothub-bridge-start", "Waiting for IoT Hub setup", true)]
     [InlineData("iothub-bridge-start", "Starting", false)]
     [InlineData("iothub-bridge-start", "Running", false)]
     [InlineData("iothub-bridge-start", "Failed", false)]
@@ -80,10 +81,12 @@ public sealed class IoTHubEventBridgeBuilderExtensionsTests
     [InlineData("iothub-bridge-pause", "Starting", false)]
     [InlineData("iothub-bridge-pause", "Paused", false)]
     [InlineData("iothub-bridge-pause", "Failed", false)]
+    [InlineData("iothub-bridge-pause", "Waiting for IoT Hub setup", false)]
     [InlineData("iothub-bridge-resume", "Paused", true)]
     [InlineData("iothub-bridge-resume", "Failed", true)]
     [InlineData("iothub-bridge-resume", "Running", false)]
     [InlineData("iothub-bridge-resume", "FailedToStart", false)]
+    [InlineData("iothub-bridge-resume", "Waiting for IoT Hub setup", false)]
     public void Command_State_IsShownOnlyWhenItApplies(
         string commandName,
         string state,
