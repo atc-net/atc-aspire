@@ -1,0 +1,46 @@
+name: Build & Publish Atc.Aspire.Hosting.Azure.IoTHub
+
+on:
+  push:
+    tags: [ 'Atc.Aspire.Hosting.Azure.IoTHub@v*.*.*' ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # required for NuGet Trusted Publishing (OIDC)
+
+    steps:
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
+
+      - name: ⚙️ Setup dotnet 10.0.x
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 🧹 Clean
+        run: dotnet clean -c Release && dotnet nuget locals all --clear
+
+      - name: 🔁 Restore packages
+        run: dotnet restore src/Atc.Aspire.Hosting.Azure.IoTHub/Atc.Aspire.Hosting.Azure.IoTHub.csproj
+
+      - name: 🛠️ Build library in release mode
+        run: dotnet build src/Atc.Aspire.Hosting.Azure.IoTHub/Atc.Aspire.Hosting.Azure.IoTHub.csproj -c Release --no-restore /p:UseSourceLink=true
+
+      - name: 🗳️ Pack library for release
+        run: dotnet pack src/Atc.Aspire.Hosting.Azure.IoTHub/Atc.Aspire.Hosting.Azure.IoTHub.csproj -c Release --no-restore -o ${GITHUB_WORKSPACE}/packages /p:PublicRelease=true
+
+      - name: 🔑 NuGet login (OIDC → short-lived API key)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: 📦 Push package to NuGet
+        run: |
+          dotnet nuget push ${GITHUB_WORKSPACE}/packages/Atc.Aspire.Hosting.Azure.IoTHub*.nupkg -k "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
