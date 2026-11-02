@@ -7,12 +7,17 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
 {
     public const string PausedState = "Paused";
     public const string FailedState = "Failed";
+    public const string WaitingForSetupState = "Waiting for IoT Hub setup";
 
     // Events of devices that start with the AppHost may be raised just before the bridge reads its first event.
     private static readonly TimeSpan StartTimeMargin = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan CountsInterval = TimeSpan.FromSeconds(1);
 
+    // Signing in and reading the hub take a few seconds; an unreachable Azure mustn't hold up the start for long.
+    private static readonly TimeSpan SetupCheckTimeout = TimeSpan.FromSeconds(30);
+
     private readonly IoTHubEventBridgeResource resource;
+    private readonly Func<string, CancellationToken, Task<IoTHubSettingsReadResult>> readSettings;
     private readonly ResourceNotificationService notifications;
     private readonly ILogger logger;
     private readonly CancellationToken stopping;
@@ -30,16 +35,19 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
     /// Initializes a new instance of the <see cref="EventBridgeController"/> class.
     /// </summary>
     /// <param name="resource">The bridge resource.</param>
+    /// <param name="readSettings">Reads the settings of an IoT Hub by name, to check its setup.</param>
     /// <param name="notifications">The notification service that publishes the resource's state.</param>
     /// <param name="logger">The resource logger.</param>
     /// <param name="stopping">Cancelled when the AppHost stops.</param>
     public EventBridgeController(
         IoTHubEventBridgeResource resource,
+        Func<string, CancellationToken, Task<IoTHubSettingsReadResult>> readSettings,
         ResourceNotificationService notifications,
         ILogger logger,
         CancellationToken stopping)
     {
         this.resource = resource;
+        this.readSettings = readSettings;
         this.notifications = notifications;
         this.logger = logger;
         this.stopping = stopping;
@@ -222,6 +230,11 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
 
         var iotHub = IoTHubConnectionInfo.Parse(connectionString);
         var deviceIds = await GetDeviceIdsAsync();
+        if (!await CheckSetupAsync(iotHub))
+        {
+            return;
+        }
+
         var readerOptions = new IoTHubReaderOptions(resource.ConsumerGroup, resource.UseWebSockets);
         LogStarting(iotHub.HostName, readerOptions.TransportDescription, resource.ConsumerGroup);
 
@@ -268,6 +281,68 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
         StartRun(startedBridge);
         LogRunning(iotHub.HostName, startTime, devices);
     }
+
+    // False when the hub lacks something the bridge needs: the bridge then waits for the hub's setup instead of starting.
+    private async Task<bool> CheckSetupAsync(IoTHubConnectionInfo iotHub)
+    {
+        var read = await ReadSettingsAsync(iotHub.HubName);
+        if (read.Settings is null)
+        {
+            // Without a check, e.g. without an Azure sign-in, the hub may well be set up, so the bridge forwards anyway.
+            LogSetupNotVerified(iotHub.HostName, read.NotVerifiedReason!);
+            await PublishSetupAsync($"Not verified: {read.NotVerifiedReason}");
+            return true;
+        }
+
+        var result = IoTHubSetupCheck.Check(read.Settings, resource.ConsumerGroup, resource.Targets.Keys);
+        if (result.IsComplete)
+        {
+            LogSetupVerified(iotHub.HostName);
+            await PublishSetupAsync("Verified");
+            return true;
+        }
+
+        var missing = string.Join("; ", result.Missing.Select(x => IoTHubSetupCheck.Describe(x, resource.ConsumerGroup)));
+        var nextStep = result.BlockedReason is null
+            ? "Add what's missing to the hub, then start the bridge again."
+            : $"The bridge won't change this hub, because {result.BlockedReason}. Add what's missing yourself, then start the bridge again.";
+
+        LogSetupMissing(iotHub.HostName, missing, nextStep);
+
+        await notifications.PublishUpdateAsync(resource, snapshot => snapshot with
+        {
+            State = new ResourceStateSnapshot(WaitingForSetupState, KnownResourceStateStyles.Warn),
+            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, $"Missing: {missing}")),
+        });
+
+        return false;
+    }
+
+    private async Task<IoTHubSettingsReadResult> ReadSettingsAsync(
+        string hubName)
+    {
+        using var timeout = new CancellationTokenSource(SetupCheckTimeout, resource.TimeProvider);
+        using var timeoutOrStopping = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, stopping);
+
+        try
+        {
+            return await readSettings(hubName, timeoutOrStopping.Token);
+        }
+        catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
+        {
+            return IoTHubSettingsReadResult.NotVerified($"Azure didn't answer within {SetupCheckTimeout.TotalSeconds:0} seconds.");
+        }
+        catch (Exception ex) when (!stopping.IsCancellationRequested)
+        {
+            return IoTHubSettingsReadResult.NotVerified(ex.Message);
+        }
+    }
+
+    private Task PublishSetupAsync(string setup)
+        => notifications.PublishUpdateAsync(resource, snapshot => snapshot with
+        {
+            Properties = ResourceProperties.Set(snapshot.Properties, new ResourcePropertySnapshot(PropertyNames.Setup, setup)),
+        });
 
     // The devices to forward, or null for all devices.
     // A parameter's value is read at start, because the dashboard may ask the developer for it only then.
@@ -416,6 +491,7 @@ internal sealed partial class EventBridgeController : IAsyncDisposable
     {
         public const string HostName = "iothub.hostName";
         public const string Transport = "iothub.transport";
+        public const string Setup = "iothub.setup";
         public const string ConsumerGroup = "iothub.consumerGroup";
         public const string StartTime = "bridge.startTime";
         public const string Devices = "bridge.devices";

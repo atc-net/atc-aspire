@@ -11,4 +11,7 @@ internal static class LoggingEventIdConstants
     public const int BridgePaused = 306;
     public const int BridgeResumed = 307;
     public const int CountsNotPublished = 308;
+    public const int SetupVerified = 309;
+    public const int SetupNotVerified = 310;
+    public const int SetupMissing = 311;
 }

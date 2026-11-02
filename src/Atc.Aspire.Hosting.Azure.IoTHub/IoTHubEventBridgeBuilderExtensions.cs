@@ -236,8 +236,14 @@ public static class IoTHubEventBridgeBuilderExtensions
         });
 
         var lifetime = initializeEvent.Services.GetRequiredService<IHostApplicationLifetime>();
+        var configuration = initializeEvent.Services.GetRequiredService<IConfiguration>();
+
+        // The same tenant setting Aspire uses when it provisions Azure resources.
+        var readSettings = resource.ReadSettings ?? ArmIoTHubSettingsReader.Create(configuration["Azure:TenantId"]).ReadAsync;
+
         var controller = new EventBridgeController(
             resource,
+            readSettings,
             initializeEvent.Notifications,
             initializeEvent.Logger,
             lifetime.ApplicationStopping);
@@ -262,10 +268,10 @@ public static class IoTHubEventBridgeBuilderExtensions
                 executeCommand: _ => StartBridge(builder.Resource),
                 commandOptions: new CommandOptions
                 {
-                    Description = "Connects to IoT Hub and forwards its events from the time the AppHost started.",
+                    Description = "Checks the IoT Hub's setup, connects to it and forwards its events from the time the AppHost started.",
                     IconName = "Play",
                     IsHighlighted = true,
-                    UpdateState = context => IsInState(context, KnownResourceStates.NotStarted, KnownResourceStates.FailedToStart)
+                    UpdateState = context => IsInState(context, KnownResourceStates.NotStarted, KnownResourceStates.FailedToStart, EventBridgeController.WaitingForSetupState)
                         ? ResourceCommandState.Enabled
                         : ResourceCommandState.Hidden,
                 })

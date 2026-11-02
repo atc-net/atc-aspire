@@ -12,6 +12,8 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
     private readonly FakeEventHubSender lifecycle = new("lifecycle");
     private readonly List<string> senderEventHubs = [];
     private string? failingEventHub;
+    private Func<IoTHubEventBridgeResource, CancellationToken, Task<IoTHubSettingsReadResult>>? readSettings;
+    private string? settingsHubName;
     private DistributedApplication? app;
     private IoTHubConnectionInfo? readerIotHub;
     private IoTHubReaderOptions? readerOptions;
@@ -47,16 +49,110 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
         var (_, partitionKey) = await lifecycle.ReceiveAsync();
 
         partitionKey.Should().Be("device1");
+        settingsHubName.Should().Be("myhub");
         readerIotHub!.HostName.Should().Be("myhub.azure-devices.net");
         readerOptions.Should().Be(new IoTHubReaderOptions("my-group", UseWebSockets: false));
         reader.Positions.Should().Equal(("0", EventPosition.FromEnqueuedTime(timeProvider.GetUtcNow().AddSeconds(-30))));
 
         GetProperties().Should().Contain(
             new KeyValuePair<string, string?>("iothub.hostName", "myhub.azure-devices.net"),
+            new KeyValuePair<string, string?>("iothub.setup", "Verified"),
             new KeyValuePair<string, string?>("iothub.transport", "AMQP (port 5671)"),
             new KeyValuePair<string, string?>("iothub.consumerGroup", "my-group"),
             new KeyValuePair<string, string?>("bridge.startTime", "2026-10-31 11:59:30Z"),
             new KeyValuePair<string, string?>("bridge.devices", "All devices"));
+    }
+
+    [Fact]
+    public async Task Start_HubMissesARoute_WaitsForSetupWithoutConnecting()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        readSettings = (resource, _) => Task.FromResult(IoTHubSettingsReadResult.Read(
+            TestHubSettings.SetUp(resource.ConsumerGroup) with { Routes = [] }));
+
+        // Act
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+
+        // Assert
+        readerIotHub.Should().BeNull();
+        GetProperties()["iothub.setup"].Should().Be("Missing: a route for device lifecycle events to the built-in endpoint");
+    }
+
+    [Fact]
+    public async Task Start_AfterTheHubIsSetUp_StartCommandChecksAgainAndRuns()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        readSettings = (resource, _) => Task.FromResult(IoTHubSettingsReadResult.Read(
+            TestHubSettings.SetUp(resource.ConsumerGroup) with { ConsumerGroups = ["$Default"] }));
+
+        await InitializeAsync(bridge);
+        await WaitForStateAsync("Waiting for IoT Hub setup");
+        readSettings = null;
+
+        // Act
+        var result = await ExecuteCommandAsync("iothub-bridge-start");
+
+        // Assert
+        result.Success.Should().BeTrue();
+        await WaitForStateAsync(KnownResourceStates.Running);
+        GetProperties()["iothub.setup"].Should().Be("Verified");
+    }
+
+    [Fact]
+    public async Task Start_SetupNotVerified_ShowsWhyAndRunsAnyway()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        readSettings = (_, _) => Task.FromResult(IoTHubSettingsReadResult.NotVerified("Not signed in to Azure, e.g. with 'az login'."));
+
+        // Act
+        await InitializeAsync(bridge);
+        await WaitForStateAsync(KnownResourceStates.Running);
+
+        // Assert
+        readerIotHub.Should().NotBeNull();
+        GetProperties()["iothub.setup"].Should().Be("Not verified: Not signed in to Azure, e.g. with 'az login'.");
+    }
+
+    [Fact]
+    public async Task Start_SetupCheckFails_ShowsTheErrorAndRunsAnyway()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        readSettings = (_, _) => Task.FromException<IoTHubSettingsReadResult>(new InvalidOperationException("Resource Graph is down."));
+
+        // Act
+        await InitializeAsync(bridge);
+        await WaitForStateAsync(KnownResourceStates.Running);
+
+        // Assert
+        GetProperties()["iothub.setup"].Should().Be("Not verified: Resource Graph is down.");
+    }
+
+    [Fact]
+    public async Task Start_AzureDoesNotAnswer_RunsAnywayAfter30Seconds()
+    {
+        // Arrange
+        var bridge = CreateBridge();
+        var checkStarted = new TaskCompletionSource();
+        readSettings = async (_, cancellationToken) =>
+        {
+            checkStarted.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            throw new InvalidOperationException("Unreachable.");
+        };
+
+        // Act
+        await InitializeAsync(bridge);
+        await checkStarted.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        timeProvider.Advance(TimeSpan.FromSeconds(30));
+        await WaitForStateAsync(KnownResourceStates.Running);
+
+        // Assert
+        GetProperties()["iothub.setup"].Should().Be("Not verified: Azure didn't answer within 30 seconds.");
     }
 
     [Fact]
@@ -368,6 +464,16 @@ public sealed class IoTHubEventBridgeStartTests : IAsyncDisposable
             return eventHub.Name == failingEventHub
                 ? Task.FromException<IEventHubSender>(new InvalidOperationException($"Event Hub '{eventHub.Name}' is unreachable."))
                 : Task.FromResult<IEventHubSender>(lifecycle);
+        };
+
+        // Unless a test says otherwise, the hub is set up for the bridge.
+        resource.ReadSettings = (hubName, cancellationToken) =>
+        {
+            settingsHubName = hubName;
+
+            return readSettings is null
+                ? Task.FromResult(IoTHubSettingsReadResult.Read(TestHubSettings.SetUp(resource.ConsumerGroup)))
+                : readSettings(resource, cancellationToken);
         };
 
         // The Event Hubs emulator doesn't run in these tests, so the bridge doesn't wait for it.
